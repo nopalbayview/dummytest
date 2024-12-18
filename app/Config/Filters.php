@@ -2,6 +2,8 @@
 
 namespace Config;
 
+use App\Filters\IsLogin;
+use App\Filters\IsNotLogin;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
@@ -34,6 +36,8 @@ class Filters extends BaseFilters
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
+        'auth' => IsLogin::class,
+        'noauth' => IsNotLogin::class
     ];
 
     /**
