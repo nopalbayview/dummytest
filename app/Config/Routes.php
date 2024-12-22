@@ -26,6 +26,7 @@ $routes->group('user', function ($routes) {
     $routes->add('delete', 'User::deleteData', $this->noauth);
 });
 // Routing Master Dibawah Sini ---------------------------
+<<<<<<< HEAD
 $routes->group('customer', function ($routes) { 
     $routes->add('', 'Customer::index', $this->noauth);
     $routes->add('table', 'Customer::datatable', $this->noauth);
@@ -35,6 +36,31 @@ $routes->group('customer', function ($routes) {
     $routes->add('update', 'Customer::updateData', $this->noauth);
     $routes->add('delete', 'Customer::deleteData', $this->noauth);
 });
+=======
+
+// Routes Master Supplier
+$routes->group('supplier', function ($routes) {
+    $routes->add('/', 'Supplier::index', $this->noauth);
+    $routes->add('table', 'Supplier::dataTable', $this->noauth);
+    $routes->add('forms', 'Supplier::forms', $this->noauth);
+    $routes->add('form/(:any)', 'Supplier::forms/$1', $this->noauth);
+    $routes->add('add', 'Supplier::add', $this->noauth);
+    $routes->add('update', 'Supplier::update', $this->noauth);
+    $routes->add('delete', 'Supplier::delete', $this->noauth);
+});
+
+// Routes Master Project
+$routes->group('project', function ($routes) {
+    $routes->add('', 'Project::index', $this->noauth);
+    $routes->add('table', 'Project::datatable', $this->noauth);
+    $routes->add('add', 'Project::addData', $this->noauth);
+    $routes->add('form', 'Project::forms', $this->noauth);
+    $routes->add('form/(:any)', 'Project::forms/$1', $this->noauth);
+    $routes->add('update', 'Project::updateData', $this->noauth);
+    $routes->add('delete', 'Project::deleteData', $this->noauth);
+});
+
+>>>>>>> b33467d34cb815ea2bda7a9bbffd4accb67dcc83
 // -------------------------------------------------------->
 // Log Out
 $routes->add('logout', 'User::logOut');
