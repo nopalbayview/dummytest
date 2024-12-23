@@ -38,16 +38,16 @@ class Supplier extends BaseController
     public function forms($id = '')
     {
         $form_type = (empty($id) ? 'add' : 'edit');
-        $row = [];
+        $row = array();
         if ($id != '') {
-            $id = decrypting($id); // Ensure this function exists and works correctly
-            $row = $this->MSupplier->find($id); // Use find method to get a single record
+            $id = decrypting($id);
+            $row = $this->MSupplier->find($id); 
         }
         $dt['view'] = view('master/supplier/v_form', [
             'form_type' => $form_type,
             'row' => $row,
             'userid' => $id,
-            'title' => 'Supplier Form' // Pass the title variable
+            'title' => 'Supplier Form' 
         ]);
         $dt['csrfToken'] = csrf_hash();
         echo json_encode($dt);
@@ -59,7 +59,7 @@ class Supplier extends BaseController
         $address = $this->request->getPost('address');
         $phone = $this->request->getPost('phone');
         $email = $this->request->getPost('email');
-        $filepath = $this->request->getPost('filepath');
+        $filepath = $this->request->getFile('filepath');
         $res = array();
 
         $this->db->transBegin();
@@ -69,7 +69,16 @@ class Supplier extends BaseController
             if (empty($address)) throw new Exception('Masukkan alamat');
             if (empty($phone)) throw new Exception('Masukkan nomor HP');
             if (empty($email)) throw new Exception('Masukkan email');
-            if (empty($filepath)) throw new Exception('Masukkan file path');
+
+            $allowedExtensions = ['jpg', 'jpeg', 'png'];
+            $extension = $filepath->getExtension();
+            if (!in_array($extension, $allowedExtensions)) {
+                throw new Exception("Format filepath tidak valid, hanya jpg, jpeg, dan png yang diperbolehkan!");
+            }
+
+            $filename = $filepath->getRandomName();
+            $filepath->move('uploads/supplier/', $filename);
+            $fileurl = 'uploads/supplier/' . $filename;
 
             // Insert data
             $this->MSupplier->store([
@@ -77,7 +86,7 @@ class Supplier extends BaseController
                 'address' => $address,
                 'phone' => $phone,
                 'email' => $email,
-                'filepath' => $filepath,
+                'filepath' => $fileurl,
                 'createdby' => 1, 
                 'createddate' => date('Y-m-d H:i:s'),
                 'updatedby' => 1,
@@ -126,12 +135,12 @@ class Supplier extends BaseController
 
     public function update()
     {
-        $userid = $this->request->getPost('id');
+        $supplierid = $this->request->getPost('id');
         $suppliername = $this->request->getPost('suppliername');
         $address = $this->request->getPost('address');
         $phone = $this->request->getPost('phone');
         $email = $this->request->getPost('email');
-        $filepath = $this->request->getPost('filepath');
+        $filepath = $this->request->getFile('filepath');
         $res = array();
 
         $this->db->transBegin();
@@ -141,18 +150,32 @@ class Supplier extends BaseController
             if (empty($address)) throw new Exception('Masukkan alamat');
             if (empty($phone)) throw new Exception('Masukkan nomor HP');
             if (empty($email)) throw new Exception('Masukkan email');
-            if (empty($filepath)) throw new Exception('Masukkan file path');
+
             $data = [
                 'suppliername' => $suppliername,
                 'address' => $address,
                 'phone' => $phone,
                 'email' => $email,
-                'filepath' => $filepath,
                 'updatedby' => 1,
                 'updateddate' => date('Y-m-d H:i:s')
             ];
 
-            $this->MSupplier->edit($data, $userid);
+            if ($filepath && $filepath->isValid()) {
+                $allowedExtensions = ['jpg', 'jpeg', 'png'];
+                $extension = $filepath->getExtension();
+                if (!in_array($extension, $allowedExtensions)) {
+                    throw new Exception("Format foto tidak valid, hanya jpg, jpeg, dan png yang diperbolehkan!");
+                }
+                $oldFilePath = $this->MSupplier->getOne($supplierid)['filepath'];
+                if (file_exists($oldFilePath)) {
+                    unlink($oldFilePath);
+                }
+                $newName = $filepath->getRandomName();
+                $filepath->move('uploads/supplier/', $newName);
+                $data['filepath'] = 'uploads/supplier/' . $newName;
+            }
+
+            $this->MSupplier->edit($data, $supplierid);
             $res = [
                 'status' => '1',
                 'message' => 'Supplier updated successfully',
