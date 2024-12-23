@@ -27,7 +27,7 @@
     <div class="form-group">
         <label for="filepath">FilePath : </label>
         <input type="file" class="form-input fs-7" id="filepath" name="filepath"
-            value="<?= (($form_type == 'edit') ? $row['filepath'] : '') ?>" required>
+            value="<?= (($form_type == 'edit') ? $row['filepath'] : '') ?>" required accept="image/*">
     </div>
     <input type="hidden" id="csrf_token_form" name="<?= csrf_token() ?>">
     <div class="modal-footer">
@@ -49,11 +49,9 @@
         if (form_type == 'edit') {
             $('#btn-reset').attr('disabled', true);
         }
-
-        $('#btn-submit').click(function () {
-            $('#form-supplier').trigger('submit');
-        });
-
+        // $('#btn-submit').click(function () {
+        //     $('#form-supplier').trigger('submit');
+        // });
         $('#form-supplier').on('submit', function (e) {
             e.preventDefault();
             let csrf = decrypter($("#csrf_token").val());
@@ -74,13 +72,13 @@
                 success: function (response) {
                     $("#csrf_token").val(encrypter(response.csrfToken));
                     $("#csrf_token_form").val("");
-                    let pesan = response.message;
+                    let pesan = response.pesan;
                     let notif = 'success';
                     if (response.status != 1) {
                         notif = 'error';
                     }
-                    if (response.message != undefined) {
-                        pesan = response.message;
+                    if (response.pesan != undefined) {
+                        pesan = response.pesan;
                     }
                     showNotif(notif, pesan);
                     if (response.status == 1) {

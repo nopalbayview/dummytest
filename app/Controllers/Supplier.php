@@ -95,7 +95,7 @@ class Supplier extends BaseController
 
             $res = [
                 'status' => '1',
-                'message' => 'Supplier added successfully',
+                'pesan' => 'Supplier added successfully',
                 "dbError" => db_connect()
             ];
             $this->db->transCommit();
