@@ -31,7 +31,8 @@
     </div>
     <input type="hidden" id="csrf_token_form" name="<?= csrf_token() ?>">
     <div class="modal-footer">
-        <button type="button" class="btn btn-warning dflex align-center" onclick="return resetForm('form-supplier')">
+        <button type="button" class="btn btn-warning dflex align-center" id="btn-reset"
+            onclick="return resetForm('form-supplier')" <?= ($form_type == 'edit') ? 'disabled' : '' ?>>
             <i class="bx bx-revision margin-r-2"></i>
             <span class="fw-normal fs-7">Reset</span>
         </button>
@@ -44,6 +45,11 @@
 
 <script>
     $(document).ready(function () {
+        let form_type = '<?= $form_type ?>';
+        if (form_type == 'edit') {
+            $('#btn-reset').attr('disabled', true);
+        }
+
         $('#btn-submit').click(function () {
             $('#form-supplier').trigger('submit');
         });
@@ -68,13 +74,13 @@
                 success: function (response) {
                     $("#csrf_token").val(encrypter(response.csrfToken));
                     $("#csrf_token_form").val("");
-                    let pesan = response.pesan;
+                    let pesan = response.message;
                     let notif = 'success';
-                    if (response.sukses != 1) {
+                    if (response.status != 1) {
                         notif = 'error';
                     }
-                    if (response.pesan != undefined) {
-                        pesan = response.pesan;
+                    if (response.message != undefined) {
+                        pesan = response.message;
                     }
                     showNotif(notif, pesan);
                     if (response.status == 1) {
