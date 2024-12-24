@@ -38,9 +38,6 @@ class Document extends BaseController
         ]);
     }
 
-
-
-
     public function datatable()
     {
         $table = Datatables::method([MDocument::class, 'datatable'], 'searchable')
@@ -107,9 +104,9 @@ class Document extends BaseController
                 'description' => $description,
                 'filepath' => $filePath,
                 'createddate' => date('Y-m-d H:i:s'),
-                'createdby' => 1,
+                'createdby' => getSession('userid'),
                 'updateddate' => date('Y-m-d H:i:s'),
-                'updatedby' => 1,
+                'updatedby' => getSession('userid'),
             ]);
 
             $db->transCommit();
@@ -127,80 +124,77 @@ class Document extends BaseController
                 'traceString' => $e->getTraceAsString(),
             ];
         }
-
         echo json_encode($res);
     }
-
-
 
     public function updateData()
-    {
-        $userid = $this->request->getPost('id');
-        $documentname = $this->request->getPost('name');
-        $description = $this->request->getPost('description');
-        $filepath = $this->request->getFile('dokumen');
-        $res = array();
-        $db = db_connect();
-    
-        $db->transBegin();
-        try {
-            // Validasi input
-            if (empty($description)) throw new Exception("Masukkan deskripsi");
-            if (empty($documentname)) throw new Exception("Masukkan nama dokumen");
-    
-            // Ambil data dokumen lama berdasarkan user ID
-            $oldDocument = $this->MDocument->getOne($userid);
-            if (!$oldDocument) throw new Exception("Dokumen tidak ditemukan untuk ID tersebut");
-    
-            // Siapkan data untuk diperbarui
-            $data = [
-                'documentname' => $documentname,
-                'description' => $description,
-                'updateddate' => date('Y-m-d H:i:s'),
-                'updatedby' => 1, // ID user yang melakukan pembaruan
-            ];
-    
-            // Jika ada file baru yang diunggah
-            if ($filepath && $filepath->isValid()) {
-                $allowedExtensions = ['doc', 'docx', 'pdf', 'xlsx'];
-                $extension = $filepath->getExtension();
-                if (!in_array($extension, $allowedExtensions)) {
-                    throw new Exception("Format file tidak valid, hanya doc, docx, pdf, dan xlsx yang diperbolehkan!");
-                }
-    
-                // Hapus file lama jika ada
-                if (!empty($oldDocument['filepath']) && file_exists($oldDocument['filepath'])) {
-                    unlink($oldDocument['filepath']);
-                }
-    
-                // Generate nama file unik untuk file baru
-                $newName = $filepath->getRandomName();
-                $filepath->move('uploads/document', $newName);
-                $data['filepath'] = 'uploads/document/' . $newName; // Update file path di database
+{
+    $userid = $this->request->getPost('id');
+    $documentname = $this->request->getPost('name');
+    $description = $this->request->getPost('description');
+    $filepath = $this->request->getFile('dokumen');
+    $res = array();
+    $db = db_connect();
+
+    $db->transBegin();
+    try {
+        // Validasi input
+        if (empty($description)) throw new Exception("Masukkan deskripsi");
+        if (empty($documentname)) throw new Exception("Masukkan nama dokumen");
+
+        // Ambil data dokumen lama berdasarkan user ID
+        $oldDocument = $this->MDocument->getOne($userid);
+        if (!$oldDocument) throw new Exception("Dokumen tidak ditemukan untuk ID tersebut");
+
+        // Siapkan data untuk diperbarui
+        $data = [
+            'documentname' => $documentname,
+            'description' => $description,
+            'updateddate' => date('Y-m-d H:i:s'),
+            'updatedby' => 1, // ID user yang melakukan pembaruan
+        ];
+
+        // Jika ada file baru yang diunggah
+        if ($filepath && $filepath->isValid()) {
+            $allowedExtensions = ['doc', 'docx', 'pdf', 'xlsx'];
+            $extension = $filepath->getExtension();
+            if (!in_array($extension, $allowedExtensions)) {
+                throw new Exception("Format file tidak valid, hanya doc, docx, pdf, dan xlsx yang diperbolehkan!");
             }
-    
-            // Update data di database
-            $result = $this->MDocument->edit($data, $userid);
-            if (!$result) throw new Exception("Gagal memperbarui data dalam database!");
-    
-            $db->transCommit();
-    
-            $res = [
-                'sukses' => '1',
-                'pesan' => 'Sukses memperbarui dokumen',
-            ];
-        } catch (Exception $e) {
-            $db->transRollback();
-            $res = [
-                'sukses' => '0',
-                'pesan' => $e->getMessage(),
-                'traceString' => $e->getTraceAsString(),
-            ];
+
+            // Hapus file lama jika ada
+            if (!empty($oldDocument['filepath']) && file_exists($oldDocument['filepath'])) {
+                unlink($oldDocument['filepath']);
+            }
+
+            // Generate nama file unik untuk file baru
+            $newName = $filepath->getRandomName();
+            $filepath->move('uploads/document', $newName);
+            $data['filepath'] = 'uploads/document/' . $newName; // Update file path di database
         }
-    
-        echo json_encode($res);
+
+        // Update data di database
+        $result = $this->MDocument->edit($data, $userid);
+        if (!$result) throw new Exception("Gagal memperbarui data dalam database!");
+
+        $db->transCommit();
+
+        $res = [
+            'sukses' => '1',
+            'pesan' => 'Sukses memperbarui dokumen',
+        ];
+    } catch (Exception $e) {
+        $db->transRollback();
+        $res = [
+            'sukses' => '0',
+            'pesan' => $e->getMessage(),
+            'traceString' => $e->getTraceAsString(),
+        ];
     }
-    
+
+    echo json_encode($res);
+}
+
 
 
 
@@ -231,16 +225,6 @@ class Document extends BaseController
         echo json_encode($res);
     }
 
-    public function logOut()
-    {
-        $userid = session()->get('userid');
-        $row = $this->MDocument->getOne($userid);
-        if (!empty($row)) {
-            destroySession();
-        }
-        return redirect('login');
-    }
-
 
 
     public function export()
@@ -252,42 +236,63 @@ class Document extends BaseController
         $spreadSheet = new Spreadsheet();
         $sheet = $spreadSheet->getActiveSheet();
     
-        // Set the title and header format
+        // Set the title at the top
         $sheet->setCellValue('A1', "Data Dokumen");
-        $sheet->mergeCells('A1:C1'); // Merge sesuai kolom
+        $sheet->mergeCells('A1:D1'); // Merge sesuai kolom header
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
     
         // Header columns (Row 3)
-        $sheet->setCellValue('A3', "No");
-        $sheet->setCellValue('B3', "Documentname");
-        $sheet->setCellValue('C3', "Description");
-        $sheet->setCellValue('D3', "FilePath");
+        $headers = ['No', 'Document Name', 'Description', 'File Path'];
+        $columns = ['A', 'B', 'C', 'D'];
     
-        // Set the style for the header (Bold and centered)
-        $sheet->getStyle('A3:D3')->getFont()->setBold(true);
-        $sheet->getStyle('A3:D3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A3:D3')->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        foreach ($headers as $index => $header) {
+            $sheet->setCellValue($columns[$index] . '3', $header);
+        }
     
-        // Write data to the sheet
-        $row = 4; // Start from row 4 for data
+        // Style the header (Bold, Centered, Bottom Border)
+        $sheet->getStyle('A3:D3')->applyFromArray([
+            'font' => [
+                'bold' => true,
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+            ],
+            'borders' => [
+                'bottom' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ]);
+    
+        // Write data to the sheet starting from row 4
+        $row = 4;
         foreach ($documents as $key => $document) {
-            // Write data into the respective columns
-            $sheet->setCellValue('A' . $row, $key + 1);
-            $sheet->setCellValue('B' . $row, $document['documentname']);
-            $sheet->setCellValue('C' . $row, $document['description']);
-            $sheet->setCellValue('D' . $row, $document['filepath']); // Menampilkan file path
+            $sheet->setCellValue('A' . $row, $key + 1); // No
+            $sheet->setCellValue('B' . $row, $document['documentname']); // Document Name
+            $sheet->setCellValue('C' . $row, $document['description']); // Description
+            $sheet->setCellValue('D' . $row, $document['filepath']); // File Path
+    
+            // Add row borders for better readability
+            $sheet->getStyle('A' . $row . ':D' . $row)->getBorders()->getAllBorders()
+                ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
     
             $row++;
         }
     
-        // Set column widths to auto size
-        $sheet->getColumnDimension('A')->setAutoSize(true);
-        $sheet->getColumnDimension('B')->setAutoSize(true);
-        $sheet->getColumnDimension('C')->setAutoSize(true);
-        $sheet->getColumnDimension('D')->setAutoSize(true);
+        // Adjust column widths for better readability
+        foreach ($columns as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
     
-        // Set borders for the data
-        $sheet->getStyle('A3:D' . ($row - 1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // Apply borders to the whole table
+        $sheet->getStyle('A3:D' . ($row - 1))->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ]);
     
         // Save file as Excel
         $writer = new Xlsx($spreadSheet);
@@ -298,9 +303,8 @@ class Document extends BaseController
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
     
-        // Save the file and output
         $writer->save('php://output');
     }
-
+    
     
 }

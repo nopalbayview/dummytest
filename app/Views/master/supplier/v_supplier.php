@@ -7,10 +7,18 @@
             <i class="bx bx-plus-circle margin-r-2"></i>
             <span class="fw-normal fs-7">Add New</span>
         </button>
+        <button class="btn btn-success dflex align-center margin-l-2" onclick="downloadexcel()">
+            <i class="bx bx-bookmarks margin-r-2"></i>
+            <span class="fw-normal fs-7">Export Excel</span>
+        </button>
+        <button class="btn btn-warning dflex align-center margin-l-2" onclick="downloadpdf()">
+            <i class="bx bx-printer margin-r-2"></i>
+            <span class="fw-normal fs-7">Export Pdf</span>
+        </button>
     </div>
     <div class="card-body">
         <div class="table-responsive margin-t-14p">
-            <table class="table table-bordered table-master fs-7 w-100" id="dataTable">
+            <table class="table table-bordered table-responsive-lg table-master fs-7 w-100" id="dataTable">
                 <thead>
                     <tr>
                         <td class="tableheader">No</td>
@@ -29,6 +37,13 @@
     </div>
 </div>
 <script>
+    function downloadexcel() {
+        window.location.href = '<?= base_url('supplier/export') ?>';
+    }
+
+    function downloadpdf() {
+        window.location.href = '<?= base_url('supplier/pdf') ?>';
+    }
     $(document).ready(function() {
         if (!$.fn.DataTable.isDataTable('#dataTable')) {
             $('#dataTable').DataTable({

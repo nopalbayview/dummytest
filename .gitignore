@@ -51,6 +51,7 @@ Vagrantfile
 
 app/config/*
 uploads/*
+upload/*
 
 writable/cache/*
 !writable/cache/index.html
@@ -128,3 +129,4 @@ nb-configuration.xml
 
 /results/
 /phpunit*.xml
+public/images/uploads/

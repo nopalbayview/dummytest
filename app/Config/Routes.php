@@ -26,6 +26,7 @@ $routes->group('user', function ($routes) {
     $routes->add('form/(:any)', 'User::forms/$1', $this->noauth);
     $routes->add('update', 'User::updateData', $this->noauth);
     $routes->add('delete', 'User::deleteData', $this->noauth);
+    $routes->add('printpdf', 'User::printPDF', $this->noauth);
 });
 
 //document ROUTES
@@ -40,7 +41,7 @@ $routes->group('document', function ($routes) {
 });
 
 
-$routes->group('customer', function ($routes) { 
+$routes->group('customer', function ($routes) {
     $routes->add('', 'Customer::index', $this->noauth);
     $routes->add('table', 'Customer::datatable', $this->noauth);
     $routes->add('add', 'Customer::addData', $this->noauth);
@@ -50,7 +51,7 @@ $routes->group('customer', function ($routes) {
     $routes->add('delete', 'Customer::deleteData', $this->noauth);
 });
 
-$routes->group('category', function ($routes) { 
+$routes->group('category', function ($routes) {
     $routes->add('', 'Category::index', $this->noauth);
     $routes->add('table', 'Category::datatable', $this->noauth);
     $routes->add('add', 'Category::addData', $this->noauth);
@@ -58,6 +59,7 @@ $routes->group('category', function ($routes) {
     $routes->add('form/(:any)', 'Category::forms/$1', $this->noauth); // Form dengan parameter
     $routes->add('update', 'Category::updateData', $this->noauth);
     $routes->add('delete', 'Category::deleteData', $this->noauth);
+    $routes->add('export', 'Category::export', $this->noauth);
 });
 
 
@@ -69,7 +71,9 @@ $routes->group('supplier', function ($routes) {
     $routes->add('form/(:any)', 'Supplier::forms/$1', $this->noauth);
     $routes->add('add', 'Supplier::add', $this->noauth);
     $routes->add('update', 'Supplier::update', $this->noauth);
+    $routes->add('export', 'Supplier::exportexcel', $this->noauth);
     $routes->add('delete', 'Supplier::delete', $this->noauth);
+    $routes->add('pdf', 'Supplier::Fpdf', $this->noauth);
 });
 
 // Routes Master Project
