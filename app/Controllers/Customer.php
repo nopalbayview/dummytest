@@ -11,6 +11,7 @@ use Exception;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Fpdf\Fpdf;
 
 class Customer extends BaseController
 {
@@ -283,7 +284,8 @@ class Customer extends BaseController
         echo json_encode($res);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
         $customer = $this->customerModel->datatable()->get()->getResultArray();
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -340,6 +342,38 @@ class Customer extends BaseController
         $writer->save('php://output');
         exit;
     }
+
+    public function printPDF()
+    {
+        $pdf = new Fpdf();
+        $pdf->AddPage();
+        $pdf->SetFont('Arial', 'B', 12);
+
+        // Header
+        $pdf->Cell(10, 10, 'No', 1, 0, 'C');
+        $pdf->Cell(40, 10, 'filepath', 1, 0, 'C');
+        $pdf->Cell(40, 10, 'Nama', 1, 0, 'C');
+        $pdf->Cell(60, 10, 'Email', 1, 0, 'C');
+        $pdf->Cell(40, 10, 'Alamat', 1, 0, 'C');
+        $pdf->Cell(30, 10, 'Telepon', 1, 1, 'C');
+
+        $pdf->SetFont('Arial', '', 12);
+        $datas = $this->customerModel->datatable()->get()->getResultArray();
+
+        $no = 1;
+        foreach ($datas as $row) {
+            $pdf->Cell(10, 10, $no++, 1, 0, 'C');
+            $pdf->Cell(40, 10, $row['filepath'], 1, 0, 'L');
+            $pdf->Cell(40, 10, $row['customername'], 1, 0, 'L');
+            $pdf->MultiCell(60, 10, $row['email'], 1, 'L');
+            $pdf->MultiCell(40, 10, $row['address'], 1, 'L');
+            $pdf->Cell(30, 10, $row['phone'], 1, 1, 'L');
+        }
+
+        $pdf->Output('D', 'data_customer.pdf');
+        exit;
+    }
+
 
     public function logOut()
     {
