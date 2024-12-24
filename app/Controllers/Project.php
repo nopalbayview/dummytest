@@ -8,6 +8,7 @@ use App\Models\MProject;
 use CodeIgniter\HTTP\ResponseInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Fpdf\Fpdf;
 use Exception;
 
 class Project extends BaseController
@@ -293,5 +294,53 @@ class Project extends BaseController
 
         // Write to output
         $writer->save('php://output');
+    }
+
+    public function generatePdf()
+    {
+        // Include FPDF library
+        $pdf = new Fpdf();
+
+        // Add a page
+        $pdf->AddPage();
+
+        // Set font for the title
+        $pdf->SetFont('Arial', 'B', 16);
+
+        // Add a title
+        $pdf->Cell(200, 10, 'Project data', 0, 1, 'C');
+
+        // Set font for body
+        $pdf->SetFont('Arial', '', 12);
+
+        // Create a table for displaying project data (optional)
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->Cell(40, 10, 'Project Name', 1);
+        $pdf->Cell(50, 10, 'Description', 1);
+        $pdf->Cell(40, 10, 'Start Date', 1);
+        $pdf->Cell(40, 10, 'End Date', 1);
+        $pdf->Ln();
+
+        // Retrieve project data from the model
+        $projects = $this->projectModel->findAll();
+
+        $pdf->SetFont('Arial', '', 12);
+        foreach ($projects as $project) {
+            // Project Name
+            $pdf->Cell(40, 10, $project['projectname'], 1);
+
+            // Description (using MultiCell to allow wrapping)
+            $pdf->MultiCell(50, 10, $project['description'], 1);
+
+            // Start Date and End Date (they are still displayed with Cell)
+            $pdf->Cell(40, 10, $project['startdate'], 1);
+            $pdf->Cell(40, 10, $project['enddate'], 1);
+
+            // Move to the next line after the description, since MultiCell affects the height of the row
+            $pdf->Ln();
+        }
+
+        // Output the PDF to the browser for download
+        $pdf->Output('D', 'projects.pdf');
     }
 }

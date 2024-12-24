@@ -84,6 +84,8 @@ $routes->group('project', function ($routes) {
     $routes->add('update', 'Project::updateData', $this->noauth);
     $routes->add('delete', 'Project::deleteData', $this->noauth);
     $routes->add('export', 'Project::exportexcel');
+    $routes->get('generatePdf', 'Project::generatePdf');
+
 });
 // Routes Master Product
 $routes->group('product', function ($routes) {
