@@ -26,6 +26,7 @@ $routes->group('user', function ($routes) {
     $routes->add('form/(:any)', 'User::forms/$1', $this->noauth);
     $routes->add('update', 'User::updateData', $this->noauth);
     $routes->add('delete', 'User::deleteData', $this->noauth);
+    $routes->add('printpdf', 'User::printPDF', $this->noauth);
 });
 
 //document ROUTES
@@ -70,6 +71,7 @@ $routes->group('supplier', function ($routes) {
     $routes->add('form/(:any)', 'Supplier::forms/$1', $this->noauth);
     $routes->add('add', 'Supplier::add', $this->noauth);
     $routes->add('update', 'Supplier::update', $this->noauth);
+    $routes->add('export', 'Supplier::exportexcel', $this->noauth);
     $routes->add('delete', 'Supplier::delete', $this->noauth);
 });
 
