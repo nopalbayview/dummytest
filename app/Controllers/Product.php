@@ -244,7 +244,7 @@ class Product extends BaseController
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Product_Data');
-        
+
         $headerStyle = [
             'font' => [
                 'bold' => true,
@@ -308,29 +308,38 @@ class Product extends BaseController
         $pdf->AddPage();
         $pdf->SetFont('Arial', 'B', 12);
 
-        $pdf->Cell(0, 10, 'Product Data Report', 0, 1, 'C');
+        $pdf->Cell(0, 10, 'Product Data', 0, 1, 'C');
         $pdf->Ln(10);
-
+        $pdf->SetFont('Arial', 'B', 10);
         $pdf->Cell(10, 10, 'No', 1, 0, 'C');
         $pdf->Cell(50, 10, 'Product Name', 1, 0, 'C');
         $pdf->Cell(30, 10, 'Category', 1, 0, 'C');
         $pdf->Cell(25, 10, 'Price', 1, 0, 'C');
-        $pdf->Cell(20, 10, 'Stock', 1, 0, 'C'); 
-        $pdf->Cell(55, 10, 'File path', 1, 1, 'C'); 
+        $pdf->Cell(20, 10, 'Stock', 1, 0, 'C');
+        $pdf->Cell(55, 10, 'File Path', 1, 1, 'C');
 
         $pdf->SetFont('Arial', '', 10);
         $i = 1;
         foreach ($data as $row) {
             $pdf->Cell(10, 10, $i, 1, 0, 'C');
-            $pdf->Cell(50, 10, $row['productname'], 1, 0, 'L');
-            $pdf->Cell(30, 10, $row['category'], 1, 0, 'L');
-            $pdf->Cell(25, 10, $row['price'], 1, 0, 'L');
-            $pdf->Cell(20, 10, $row['stock'], 1, 1, 'L'); 
-            $pdf->Cell(55, 10, $row['filepath'], 1, 1, 'L'); 
+
+            $x = $pdf->GetX();
+            $y = $pdf->GetY();
+            $pdf->MultiCell(50, 10, $row['productname'], 1, 'L');
+            $pdf->SetXY($x + 50, $y);
+            $x = $pdf->GetX();
+            $pdf->MultiCell(30, 10, $row['category'], 1, 'L');
+            $pdf->SetXY($x + 30, $y);
+            $pdf->Cell(25, 10, number_format($row['price'], 2), 1, 0, 'R');
+            $pdf->Cell(20, 10, $row['stock'], 1, 0, 'C');
+            $x = $pdf->GetX();
+            $pdf->MultiCell(55, 10, $row['filepath'], 1, 'L');
+            $pdf->SetY(max($pdf->GetY(), $y + 10));
+
             $i++;
         }
-        
-        $pdf->Output('D', 'Product_Data'.'.pdf');
+
+        $pdf->Output('D', 'Product_Data.pdf');
         exit;
     }
 }

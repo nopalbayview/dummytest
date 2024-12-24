@@ -74,7 +74,6 @@
                 if (res.sukses == '1') {
                     alert(res.pesan);
 
-                    // Mengosongkan input setelah berhasil disubmit
                     $('#productname').val("");
                     $('#category').val("");
                     $('#price').val("");
@@ -83,13 +82,13 @@
                     $('#createdby').val("");
                     $('#updatedby').val("");
                     $('#id').val("");
-                    tbl.ajax.reload(); // Reload data tabel
+                    tbl.ajax.reload();
                 } else {
-                    alert(res.pesan); // Menampilkan pesan error dari server
+                    alert(res.pesan);
                 }
             },
             error: function(xhr, ajaxOptions, thrownError) {
-                alert(thrownError); // Menampilkan error jika request gagal
+                alert(thrownError); 
             }
         });
     }
