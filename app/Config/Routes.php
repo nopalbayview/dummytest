@@ -102,4 +102,5 @@ $routes->add('User/logOut', 'User::logOut');
 
 //Export to excel routes
 $routes->get('Document/export', 'Document::export');
+$routes->get('Document/exportpdf', 'Document::exportpdf');
 
