@@ -85,27 +85,60 @@ class Category extends BaseController
     public function export()
     {
         $categories = $this->categoryModel->findAll(); // Ensure this returns an array or object
-
+    
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-
+    
+        // Define header style
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['argb' => 'FFFFFFFF'],
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FF4CAF50'],
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+        ];
+    
+        // Define data style
+        $dataStyle = [
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+        ];
+    
+        // Set header values and apply style
         $sheet->setCellValue('A1', 'No')
             ->setCellValue('B1', 'Category Name')
             ->setCellValue('C1', 'Description')
             ->setCellValue('D1', 'Filepath');
-
+        $sheet->getStyle('A1:D1')->applyFromArray($headerStyle);
+    
+        // Auto size columns
+        foreach (range('A', 'D') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+    
+        // Set data values and apply style
         $row = 2;
         foreach ($categories as $index => $category) {
             $sheet->setCellValue('A' . $row, $index + 1);
             $sheet->setCellValue('B' . $row, $category['categoryname']);
             $sheet->setCellValue('C' . $row, $category['description']);
             $sheet->setCellValue('D' . $row, $category['filepath']);
+            $sheet->getStyle('A' . $row . ':D' . $row)->applyFromArray($dataStyle);
             $row++;
         }
-
+    
         $writer = new Xlsx($spreadsheet);
         $filename = 'category.xlsx';
-
+    
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
