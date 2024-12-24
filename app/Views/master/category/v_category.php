@@ -7,6 +7,10 @@
                 <i class="bx bx-plus-circle margin-r-2"></i>
                 <span class="fw-normal fs-7">Add New</span>
             </button>
+            <button class="btn btn-success dflex align-center" onclick="window.location.href='<?= getURL('category/export') ?>'">
+                <i class="bx bx-export margin-r-2"></i>
+                <span class="fw-normal fs-7">Export to Excel</span>
+            </button>
         </div>
         <div class="card-body">
             <div class="table-responsive margin-t-14p">
@@ -35,7 +39,6 @@
             description = $('#description').val(),
             filepath = $('#fullname').val();
             
-
         $.ajax({
             url: link,
             type: 'post',
@@ -44,7 +47,6 @@
                 categoryname: username,
                 description: description,
                 filepath: filepath,
-              
             },
             success: function(res) {
                 if (res.sukses == '1') {
@@ -63,9 +65,6 @@
             }
         })
     }
-
 </script>
 </body>
 </html>
-
-
