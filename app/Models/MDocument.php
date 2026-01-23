@@ -8,6 +8,7 @@ class MDocument extends Model
 {
     protected $table = 'msdocument as md';
     protected $dbs;
+    
     public function __construct()
     {
         parent::__construct();

@@ -4,7 +4,7 @@
 <input type="hidden" id="csrf_token" value="<?= base_encode(csrf_hash()) ?>">
 <input type="hidden" id="list_dtids" value="">
 </body>
-<script src="<?= getURL('public/js/ckeditor5.js') ?>"></script>
+<script src="<?= getURL('/js/ckeditor5.js') ?>"></script>
 <!-- Modal Preview -->
 <div class="modal fade" id="modalprev" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="modalprevLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
@@ -139,7 +139,7 @@
                     <div class="col-4">
                         <div class="dflex align-center justify-center">
                             <div style="width: 90%;height:250px;padding:4px;margin-block:4px;border:1px solid rgba(108, 108, 108, 0.25)">
-                                <img src="<?= getURL('public/images/blank.jpg') ?>" loading="lazy" alt="preview" id="preview-alt" style="width: 100%;height:100%;object-fit:contain;">
+                                <img src="<?= getURL('/images/blank.jpg') ?>" loading="lazy" alt="preview" id="preview-alt" style="width: 100%;height:100%;object-fit:contain;">
                             </div>
                         </div>
                         <div class="dflex align-center justify-center">
@@ -279,7 +279,7 @@
             <div class="modal-body dflex align-center justify-center">
                 <div class="text-center p-y-2">
                     <h5 class="modal-title text-danger" id="errorModalInfoLabel">Internal Server Error !</h5>
-                    <img src="<?= base_url('public/icon/error-icon.png') ?>" width="200px">
+                    <img src="<?= base_url('/icon/error-icon.png') ?>" width="200px">
                     <h6>Reload your page or contact administrator for the further</h6>
                 </div>
             </div>
@@ -1333,7 +1333,7 @@
                     let getlink = splitlink[0]
                     $("#list-notifikasi").append(`
                     <div class="dropdown-item align-start" ${style_warna} url="${getlink}" type="single" notif="${arr[x]['notifid']}" onclick="read_notif(this)">
-    <img src="<?= getURL('public/images/avatar/avatar-1.png') ?>" style="width: 30px; height: 100%; object-fit: cover" alt="avatar" class="img-profile margin-r-3" />
+    <img src="<?= getURL('/images/avatar/avatar-1.png') ?>" style="width: 30px; height: 100%; object-fit: cover" alt="avatar" class="img-profile margin-r-3" />
     <div class="row" style="width: 100%">
         <div style="width: 100%; margin: 0; display: flex">
             <span class="fw-semibold" style="font-size: 12px !important">${arr[x]['fromname']}</span>
@@ -1706,12 +1706,11 @@
                 let processResults = options.processResults !== undefined ? options.processResults : (response) => {
                     $("#csrf_token").val(encrypter(response.csrfToken));
                     return {
-                        results: response.data
+                        results: response.results
                     };
                 };
                 let data = (params) => {
-                    params['searchTerm'] = params.term;
-                    params['<?= csrf_token() ?>'] = decrypter($("#csrf_token").val());
+                    params['q'] = params.term;
 
                     if (options.data !== undefined &&
                         typeof options.data === 'function') return options.data(params);
@@ -1722,7 +1721,7 @@
 
                 config.ajax = {
                     url: url,
-                    type: 'post',
+                    type: 'get',
                     data: data,
                     dataType: 'json',
                     cache: cache,

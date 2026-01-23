@@ -26,10 +26,10 @@ class Database extends Config
      */
     public array $default = [
         'DSN'          => '',
-        'hostname'     => 'localhost',
-        'username'     => 'postgres',
-        'password'     => 'password',
-        'database'     => 'dummytest',
+        'hostname'     => '10.21.1.110',
+        'username'     => 'clientuser4',
+        'password'     => 'user4',
+        'database'     => 'dummy_test_db',
         'DBDriver'     => 'Postgre',
         'DBPrefix'     => '',
         'pConnect'     => false,
@@ -44,6 +44,25 @@ class Database extends Config
         'port'         => 5432,
     ];
 
+//public array $default = [
+//    'DSN'          => '',
+//    'hostname'     => 'localhost',
+//    'username'     => 'postgres',
+//    'password'     => 'postgres',
+//    'database'     => 'my_dummy',
+//    'DBDriver'     => 'Postgre',
+//    'DBPrefix'     => '',
+//    'pConnect'     => false,
+//    'DBDebug'      => true,
+//    'charset'      => 'utf8',
+//    'DBCollat'     => 'utf8_general_ci',
+//    'swapPre'      => '',
+//    'encrypt'      => false,
+//    'compress'     => false,
+//    'strictOn'     => false,
+//    'failover'     => [],
+//    'port'         => 5432,
+//];
     //    /**
     //     * Sample database connection for SQLite3.
     //     *

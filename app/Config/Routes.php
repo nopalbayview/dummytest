@@ -63,6 +63,8 @@ $routes->group('category', function ($routes) {
     $routes->add('delete', 'Category::deleteData', $this->noauth);
     $routes->add('export', 'Category::export', $this->noauth);
     $routes->add('exportPdf', 'Category::exportPdf', $this->noauth);
+    $routes->add('formImport', 'Category::importExcel', $this->noauth);
+    $routes->add('importExcel', 'Category::importExcel', $this->noauth);
 });
 
 
@@ -107,9 +109,38 @@ $routes->group('product', function ($routes) {
     $routes->add('formImport', 'Product::formImport', $this->noauth);
     $routes->add('importExcel', 'Product::importExcel', $this->noauth);
 });
+
+$routes->group('invoice', function ($routes) {
+    $routes->add('', 'Invoice::index', $this->noauth);
+    $routes->add('table', 'Invoice::datatable', $this->noauth);
+    $routes->add('add', 'Invoice::addData', $this->noauth);
+    $routes->add('form', 'Invoice::forms', $this->noauth);
+    $routes->add('form/(:any)', 'Invoice::forms/$1', $this->noauth);
+    $routes->add('update', 'Invoice::updateData', $this->noauth);
+    $routes->add('export', 'Invoice::exportExcel', $this->noauth);
+    $routes->add('pdf', 'Invoice::Fpdf', $this->noauth);
+    $routes->add('delete', 'Invoice::deleteData', $this->noauth);
+    $routes->add('getDetails', 'Invoice::getDetails', $this->noauth);
+    $routes->add('addDetail', 'Invoice::addDetail', $this->noauth);
+    $routes->add('updateDetail', 'Invoice::updateDetail', $this->noauth);
+    $routes->add('deleteDetail', 'Invoice::deleteDetail', $this->noauth);
+    $routes->add('detailDatatable/(:any)', 'Invoice::detailDatatable/$1', $this->noauth);
+
+    $routes->add('customerList', 'Invoice::customerList', $this->noauth);
+    $routes->add('getProducts', 'Invoice::getProducts', $this->noauth);
+    $routes->add('getUOMs', 'Invoice::getUOMs', $this->noauth);
+    $routes->add('formImport', 'Invoice::formImport', $this->noauth);
+    $routes->add('importExcel', 'Invoice::importExcel', $this->noauth);
+    $routes->add('exportPdf', 'Invoice::exportPdf', $this->noauth);
+    $routes->add('customer/list', 'Invoice::customerList', $this->noauth);
+    $routes->add('product/list', 'Invoice::productList', $this->noauth);
+    $routes->add('uomList', 'Invoice::uomList', $this->noauth);
+    $routes->add('updateGrandTotal', 'Invoice::updateGrandTotal', $this->noauth);
+    // Customer list routes
+    });
 // -------------------------------------------------------->
 // Log Out
-$routes->add('User/logOut', 'User::logOut');
+$routes->add('/logout', 'User::logOut');
 
 //Export to excel routes
 $routes->get('Document/export', 'Document::export');

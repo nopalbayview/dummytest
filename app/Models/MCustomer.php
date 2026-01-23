@@ -7,7 +7,7 @@ use CodeIgniter\Model;
 class MCustomer extends Model
 {
     protected $db;
-    protected $table = 'mscustomer as us';
+    protected $table = 'mscustomer';
     public function __construct()
     {
         $this->db = db_connect();
@@ -18,11 +18,11 @@ class MCustomer extends Model
     {
         return [
             null,
-            "us.customername",
-            "us.address",
-            "us.phone",
-            "us.email",
-            "us.filepath",
+            "customername",
+            "address",
+            "phone",
+            "email",
+            "filepath",
             null,
             null,
         ];
@@ -56,6 +56,30 @@ class MCustomer extends Model
     public function destroy($column, $value)
     {
         return $this->builder->delete([$column => $value]);
+    }
+
+    public function getInitialCustomers()
+    {
+        return $this->builder
+            ->select('id, customername as text')
+            ->orderBy('customername', 'ASC')
+            ->limit(20)
+            ->get()
+            ->getResultArray();
+    }
+
+    public function searchSelect2($search)
+    {
+        $query = $this->builder
+            ->select('id, customername as text')
+            ->orderBy('customername', 'ASC')
+            ->limit(20);
+
+        if (!empty($search)) {
+            $query->like('customername', $search, 'both', null, 'LIKE');
+        }
+
+        return $query->get()->getResultArray();
     }
     
 }

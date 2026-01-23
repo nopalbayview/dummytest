@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Models;
+
+use CodeIgniter\Model;
+
+class MInvoiceHd extends Model
+{
+    protected $dbs;
+    protected $table = 'trinvoicehd';
+    protected $primaryKey = 'id';
+    protected $allowedFields = [
+        'transcode',
+        'transdate',
+        'customerid',
+        'grandtotal',
+        'description',
+        'createdby',
+        'createddate',
+        'updatedby',
+        'updateddate',
+        'isactive',
+    ];
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->dbs = db_connect();
+        $this->builder = $this->dbs->table($this->table);
+    }
+
+    public function searchable()
+    {
+    return [
+        null,           // No
+        'transcode',    // Transcode
+        'transdate',    // Transdate
+        'customerid',   // Customer
+        'grandtotal',   // Grandtotal
+        'description',  // Description
+        null,           // Created By
+        null,           // Updated By
+        null            // Actions
+    ];
+}
+
+
+public function datatable()
+    {
+        return $this->builder
+            ->select('trinvoicehd.*, mscustomer.customername')
+            ->join('mscustomer', 'mscustomer.id = trinvoicehd.customerid', 'left');
+    }
+
+    //public function getByTranscode($code)
+    //{
+        //return $this->builder->where('lower(transcode)', strtolower($code))->get()->getRowArray();
+    //}
+
+    public function getOne($id)
+    {
+        return $this->dbs->table('trinvoicehd h')
+            ->select('h.*, c.customername')
+            ->join('mscustomer c', 'c.id = h.customerid', 'left')
+            ->where('h.id', $id)
+            ->get()
+            ->getRowArray();
+    }
+
+    public function store($data)
+    {
+        return $this->builder->insert($data);
+    }
+
+    public function edit($data, $id)
+    {
+        return $this->builder->update($data, ['id' => $id]);
+    }
+
+    public function destroy($column, $value)
+    {
+        return $this->builder->delete([$column => $value]);
+    }
+
+    public function getAll()
+    {
+        return $this->builder->get()->getResultArray();
+    }
+
+    public function updateGrandTotal($headerid, $grandtotal)
+    {
+    return $this->builder->update(['grandtotal' => $grandtotal], ['id' => $headerid]);
+    }
+}

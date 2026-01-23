@@ -39,7 +39,11 @@ class Request
      * */
     public function search()
     {
-        return SearchValue::fromArray($this->request->getVar('search'));
+        $search = $this->request->getVar('search');
+        if ($search === null) {
+            $search = ['value' => '', 'regex' => false];
+        }
+        return SearchValue::fromArray($search);
     }
 
     /**
@@ -48,7 +52,11 @@ class Request
     public function columns()
     {
         $columns = array();
-        foreach($this->request->getVar('columns') as $column)
+        $cols = $this->request->getVar('columns');
+        if ($cols === null) {
+            return $columns;
+        }
+        foreach($cols as $column)
         {
             $columns[] = Column::fromArray($column);
         }

@@ -89,6 +89,14 @@ class Document extends BaseController
             if (!$filepath || !$filepath->isValid()) throw new Exception("Filepath tidak valid!");
             if (empty($documentname)) throw new Exception("Masukkan nama dokumen");
 
+            if (!preg_match('/^[a-zA-Z\s]{3,100}$/', $documentname)) {
+                throw new Exception("Nama dokumen hanya boleh huruf dan spasi");
+            }
+
+            if (!preg_match('/^[a-zA-Z\s]{3,100}$/', $description)) {
+                throw new Exception("Deskripsi Tidak Valid");
+            }
+
             $allowedExtensions = ['doc', 'docx', 'pdf', 'xlsx'];
             $extension = $filepath->getExtension();
             if (!in_array($extension, $allowedExtensions)) {
@@ -142,6 +150,14 @@ class Document extends BaseController
         // Validasi input
         if (empty($description)) throw new Exception("Masukkan deskripsi");
         if (empty($documentname)) throw new Exception("Masukkan nama dokumen");
+
+        if (!preg_match('/^[a-zA-Z\s]{3,100}$/', $documentname)) {
+                throw new Exception("Nama dokumen hanya boleh huruf dan spasi");
+        }
+
+        if (!preg_match('/^[a-zA-Z\s]{3,100}$/', $description)) {
+            throw new Exception("Deskripsi Tidak Valid");
+        }
 
         // Ambil data dokumen lama berdasarkan user ID
         $oldDocument = $this->MDocument->getOne($userid);

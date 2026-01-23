@@ -18,7 +18,7 @@ class Product extends BaseController
 
     public function __construct()
     {
-        $this->productModel = new MProduct();
+        $this->productModel = new MProduct();                                                                                          
         $this->bc = [
             [
                 'Setting',
@@ -48,7 +48,7 @@ class Product extends BaseController
 
             $foto_product = !empty($db->filepath)
                 ? "<img src='" . htmlspecialchars($db->filepath) .  "' alt='foto product' width='50' style='border-radius: 50%; object-fit: cover;'>"
-                : "<img( src:'path/to/default.png' alt='foto product' width='50' height:'50' style='border-radius:50%; object-fit: cover;'>";
+                : "<img( src:'upload/product/default.png' alt='foto product' width='50' height:'50' style='border-radius:50%; object-fit: cover;'>";
             return [
                 $no,
                 $db->productname,
@@ -98,8 +98,24 @@ class Product extends BaseController
             if (empty($productname)) throw new Exception("Product is required!");
             if (empty($category)) throw new Exception("category is required!");
             if (empty($price)) throw new Exception("price is required!");
-            if (empty($stock)) throw new Exception("stokc is required!");
+            if (empty($stock)) throw new Exception("stock is required!");
             if (empty($filepath->isValid())) throw new Exception("img is required!");
+
+            if (!preg_match('/^[\pL\pN\s\-\(\)\[\]\.\,\+\/&%]{3,150}$/u', $productname)) {
+                throw new Exception("Nama produk mengandung karakter tidak valid");
+            }
+
+            if (!preg_match('/^[\pL\s\-\/&]{3,100}$/u', $category)) {
+                throw new Exception("Kategori tidak valid");
+            }
+
+            if (!ctype_digit($price) || $price <= 0) {
+                throw new Exception("Harga hanya dapat diisi angka!");
+            }
+
+            if (!ctype_digit($stock) || $price <= 0) {
+                throw new Exception("Stock hanya dapat diisi angka!");
+            }
 
             $allowedExceptions = ['jpg', 'jpeg', 'png'];
             $extension = $filepath->getExtension();
@@ -155,6 +171,22 @@ class Product extends BaseController
             if (empty($category)) throw new Exception("Category is required!");
             if (empty($price)) throw new Exception("Price is required!");
             if (empty($stock)) throw new Exception("Stock is required!");
+
+            if (!preg_match('/^[\pL\pN\s\-\(\)\[\]\.\,\+\/&%]{3,150}$/u', $productname)) {
+                throw new Exception("Nama produk mengandung karakter tidak valid");
+            }
+
+            if (!preg_match('/^[\pL\s\-\/&]{3,100}$/u', $category)) {
+                throw new Exception("Kategori tidak valid");
+            }
+
+            if (!ctype_digit($price) || $price <= 0) {
+                throw new Exception("Harga hanya dapat diisi angka!");
+            }
+
+            if (!ctype_digit($stock) || $price <= 0) {
+                throw new Exception("Stock hanya dapat diisi angka!");
+            }
 
             // Ambil data produk lama untuk mendapatkan gambar sebelumnya
             $oldData = $this->productModel->getOne($productid);
@@ -416,5 +448,72 @@ class Product extends BaseController
         $this->db->transComplete();
         $res['csrfToken'] = csrf_hash();
         echo json_encode($res);
+    }
+
+    public function search()
+    {
+        $search = $this->request->getGet('q') ?? $this->request->getPost('q')
+               ?? $this->request->getGet('searchTerm') ?? $this->request->getPost('searchTerm');
+
+        $res = array();
+
+        try {
+            // If no search term, return initial data (first 20 products)
+            if (empty($search)) {
+                $results = $this->productModel->getInitialProducts();
+            } else {
+                $results = $this->productModel->searchSelect2($search);
+            }
+            $formattedResults = [];
+            foreach ($results as $result) {
+                $formattedResults[] = [
+                    'id' => $result['id'],
+                    'text' => $result['productname']
+                ];
+            }
+            $res['data'] = $formattedResults;
+
+            $res['csrfToken'] = csrf_hash();
+        } catch (Exception $e) {
+            $res = [
+                'data' => [],
+                'error' => $e->getMessage()
+            ];
+        }
+
+        $this->response->setJSON($res)->send();
+        exit;
+    }
+
+    public function get()
+    {
+        $id = $this->request->getPost('id');
+        $res = array();
+
+        try {
+            if (empty($id)) {
+                throw new Exception('Product ID is required');
+            }
+
+            $product = $this->productModel->getOne($id);
+
+            if (empty($product)) {
+                throw new Exception('Product not found');
+            }
+
+            $res = [
+                'success' => true,
+                'product' => $product
+            ];
+        } catch (Exception $e) {
+            $res = [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+
+        $res['csrfToken'] = csrf_hash();
+        $this->response->setJSON($res)->send();
+        exit;
     }
 }

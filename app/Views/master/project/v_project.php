@@ -2,21 +2,29 @@
 <?= $this->include('template/v_appbar') ?>
 <div class="main-content content margin-t-4">
     <div class="card p-x shadow-sm w-100">
-        <div class="card-header dflex align-center justify-end">
-            <button class="btn btn-primary dflex align-center margin-r-2"
-                onclick="window.location.href='<?= getURL('project/generatePdf') ?>'">
-                <i class="bx bx-printer margin-r-2"></i>
-                <span class="fw-normal fs-7">Print PDF</span>
-            </button>
-            <button class="btn btn-primary dflex align-center"
-                onclick="return modalForm('Add Project', 'modal-lg', '<?= getURL('project/form') ?>')">
-                <i class="bx bx-plus-circle margin-r-2"></i>
-                <span class="fw-normal fs-7">Add New</span>
-            </button>
-            <button class="btn btn-primary dflex align-center margin-l-2" onclick="downloadexcel()">
-                <i class="bx bx-download margin-r-2"></i>
-                <span class="fw-normal fs-7">Export</span>
-            </button>
+        <div class="card-header dflex align-center justify-between">
+            <div class="dflex align-center" style="gap: 10px;">
+                <button class="btn btn-success dflex align-center" onclick="modalForm('Import Project', 'modal-lg', '<?= getURL('project/formImport') ?>')">
+                    <i class="bx bx-import margin-r-2"></i>
+                    <span class="fw-normal fs-7">Import Excel</span>
+                </button>
+                <button class="btn btn-primary dflex align-center margin-r-2"
+                    onclick="window.location.href='<?= getURL('project/generatePdf') ?>'">
+                    <i class="bx bx-printer margin-r-2"></i>
+                    <span class="fw-normal fs-7">Print PDF</span>
+                </button>
+            </div>
+            <div class="dflex align-center">
+                <button class="btn btn-primary dflex align-center"
+                    onclick="return modalForm('Add Project', 'modal-lg', '<?= getURL('project/form') ?>')">
+                    <i class="bx bx-plus-circle margin-r-2"></i>
+                    <span class="fw-normal fs-7">Add New</span>
+                </button>
+                <button class="btn btn-primary dflex align-center margin-l-2" onclick="downloadexcel()">
+                    <i class="bx bx-download margin-r-2"></i>
+                    <span class="fw-normal fs-7">Export</span>
+                </button>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive margin-t-14p">

@@ -31,7 +31,7 @@
 </form>
 <script>
     function downloadTemplate() {
-        var url = '<?= base_url('public/downloadable/Template Product.xlsx') ?>';
+        var url = '<?= base_url('downloadable/Template Product.xlsx') ?>';
         window.location.href = url;
     }
 

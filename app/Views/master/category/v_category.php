@@ -4,6 +4,10 @@
     <div class="card p-x shadow-sm w-100">
         <div class="card-header dflex align-center justify-between">
             <div class="dflex align-center" style="gap: 10px;">
+                <button class="btn btn-success dflex align-center" onclick="modalForm('Import Category', 'modal-lg', '<?= getURL('category/formImport') ?>')">
+                    <i class="bx bx-import margin-r-2"></i>
+                    <span class="fw-normal fs-7">Import Excel</span>
+                </button>
                 <button class="btn btn-primary dflex align-center" onclick="window.location.href='<?= getURL('category/export') ?>'">
                     <i class="bx bx-export margin-r-2"></i>
                     <span class="fw-normal fs-7">Export to Excel</span>

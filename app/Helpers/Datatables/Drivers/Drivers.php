@@ -25,7 +25,7 @@ class Drivers
     public function filter($query)
     {
         if ($this->request->search()->isNotEmpty() && $this->request->getDatabaseColumns()->count() > 0) {
-            $query->andGroupStart();
+            $query->GroupStart();
 
             $index = 0;
             $searchValue = $this->request->search()->value();
@@ -46,8 +46,7 @@ class Drivers
                                 $query = $dbcolumn->query($query, $dbcolumn->field($field), $dbcolumn->format($searchValue));
                             } else {
                                 $index == 0
-                                    // ? $query->like("lower(" . $dbcolumn->field($field) . ")", $dbcolumn->format($searchValue))
-                                    // : $query->orLike("lower(" . $dbcolumn->field($field) . ")", $dbcolumn->format($searchValue));
+                                    // Case sensitive search (tanpa LOWER)
                                     ? $query->like("lower (CAST(" . $dbcolumn->field($field) . " AS VARCHAR))", $dbcolumn->format(strtolower($searchValue))) 
                                     : $query->orLike ("lower (CAST(". $dbcolumn->field($field) . " AS VARCHAR))", $dbcolumn->format(strtolower($searchValue)));
                             }
