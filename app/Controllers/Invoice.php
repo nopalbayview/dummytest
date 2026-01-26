@@ -188,11 +188,11 @@ protected $db;
         $this->db->transBegin();
 
          try {
-            if (empty($id)) throw new Exception("Detail ID is required!");
-            if (empty($transcode)) throw new Exception("Product is required!");
-            if (empty($transdate)) throw new Exception("UOM is required!");
-            if (empty($customerid)) throw new Exception("Quantity must be greater than 0!");
-            if (empty($description)) throw new Exception("Price must be greater than 0!");
+            if (empty($id)) throw new Exception("ID is required!");
+            if (empty($transcode)) throw new Exception("Transcode is required!");
+            if (empty($transdate)) throw new Exception("Transdate is is required!");
+            if (empty($customerid)) throw new Exception("Customer ID is required");
+            if (empty($description)) throw new Exception("Description is required");
 
             $data = $this->invoiceHeaderModel->getOne($id);
             if (empty($data)) throw new Exception("Detail not found!");
