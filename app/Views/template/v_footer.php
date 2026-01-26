@@ -216,7 +216,24 @@
     </div>
 </div>
 <!-- Modal Delete -->
-<div class="modal fade" id="modaldel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" style="z-index: 2147483647 !important" data-bs-backdrop="static">
+<style>
+/* Custom backdrop untuk modal delete agar lebih gelap */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(2px);
+}
+
+/* Pastikan modal delete di atas form */
+#modaldel {
+    z-index: 2147483647 !important;
+}
+#modaldel .modal-content {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: none;
+    border-radius: 8px;
+}
+</style>
+<div class="modal fade" id="modaldel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-backdrop-class="modal-backdrop-custom">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -1153,6 +1170,34 @@
                             if (typeof tbl_sub !== undefined) {
                                 tbl_sub.ajax.reload();
                             }
+                        } else if (pagetype == 'detail') {
+                            console.log('Reloading detail tables...');
+
+                            // Reload detail table
+                            if ($('#detailTable').length && $.fn.DataTable.isDataTable('#detailTable')) {
+                                $('#detailTable').DataTable().ajax.reload(function() {
+                                    console.log('Detail table reloaded successfully');
+                                }, false);
+                            } else {
+                                console.warn('Detail table DataTable not found');
+                            }
+
+                            // Reload header table
+                            if (typeof tbl !== 'undefined' && tbl.ajax) {
+                                tbl.ajax.reload(function() {
+                                    console.log('Header table reloaded successfully');
+                                });
+                            } else {
+                                console.warn('Header table not found');
+                            }
+
+                            // Reset form detail
+                            $('#form-detail')[0].reset();
+                            $('#productid, #uomid').val(null).trigger('change');
+                            $('#price').val('');
+                            $('#detailid').val('');
+
+                            console.log('Form reset completed');
                         } else if (pagetype == 'profiletab') {
                             $('#profile-wrap').load('<?= getURL('myprofile/getview') ?>');
                             fileArr = '';
@@ -2106,4 +2151,4 @@
         }
         return teks;
     }
-</script>
+</script>   

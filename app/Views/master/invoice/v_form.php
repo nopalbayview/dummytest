@@ -97,7 +97,7 @@
 
       <div class="form-group mb-3">
         <label class="form-label fw-bold">Price</label>
-        <input type="text" id="price" name="price" class="form-control form-control-sm" required>
+        <input type="number" id="price" name="price" class="form-control form-control-sm" min="0" step="0.01" required>
       </div>
 
       <div class="modal-footer">
@@ -285,6 +285,27 @@
     });
 
     loadTable();
+
+    // Validasi input angka untuk field price
+    $('#price').on('input', function() {
+      let value = $(this).val();
+      // Hanya izinkan angka dan titik desimal
+      let cleanedValue = value.replace(/[^0-9.]/g, '');
+      // Pastikan hanya ada satu titik desimal
+      let parts = cleanedValue.split('.');
+      if (parts.length > 2) {
+        cleanedValue = parts[0] + '.' + parts.slice(1).join('');
+      }
+      $(this).val(cleanedValue);
+    });
+
+    // Prevent paste non-numeric characters
+    $('#price').on('paste', function(e) {
+      let pasteData = e.originalEvent.clipboardData.getData('text');
+      if (!/^[0-9.]+$/.test(pasteData)) {
+        e.preventDefault();
+      }
+    });
   });
 
   function loadTable() {
@@ -320,31 +341,16 @@
 
   function deleteDataDt(these, params) {
     let id = params;
-    $(these).attr('disabled', 'disabled');
 
-    $.ajax({
-      url: "<?= base_url('invoice/deleteDetail') ?>",
-      type: "POST",
-      data: {
-        id: id
-      },
-      dataType: "json",
-      success: function(res) {
-        $(these).removeAttr('disabled');
-        showNotif(res.sukses ? 'success' : 'error', res.pesan);
-
-        if (res.sukses == 1) {
-          $('#form-detail')[0].reset();
-          $('#productid, #uomid').val(null).trigger('change');
-          $('#price').val('');
-          $('#detailid').val('');
-
-          reloadTable(); // refresh detail
-          tbl.ajax.reload(); // refresh header
-          $("#csrf_token").val(encrypter(res.csrfToken)); // update token
+    // Gunakan modalDelete yang sama dengan datatable utama
+    modalDelete(
+        'Delete Detail Item',
+        {
+            'link': '<?= base_url("invoice/deleteDetail") ?>',
+            'id': id,
+            'pagetype': 'detail'
         }
-      }
-    });
+    );
   }
 
   function reloadTable() {
