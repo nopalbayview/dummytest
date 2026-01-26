@@ -134,7 +134,6 @@ protected $db;
         $transdate = $this->request->getPost('transdate');
         $customerid = $this->request->getPost('customerid');
         $description = $this->request->getPost('description');
-        $res = [];
 
         $this->db->transBegin();
         try {
@@ -176,7 +175,6 @@ protected $db;
                 'pesan' => $e->getMessage()
             ]);
         }
-        $this->db->transComplete();
     }
 
     public function updateData()
@@ -186,80 +184,58 @@ protected $db;
         $transdate = $this->request->getPost('transdate');
         $customerid = $this->request->getPost('customerid');
         $description= $this->request->getPost('description');
-        $res = [];
 
         $this->db->transBegin();
 
-        if (empty($id)) {
-            $this->db->transRollback();
-            return $this->response->setJSON([
-                'sukses' => 0,
-                'pesan' => 'ID is required!'
-            ]);
-        }
-        if (empty($transcode)) {
-            $this->db->transRollback();
-            return $this->response->setJSON([
-                'sukses' => 0,
-                'pesan' => 'Transcode is required!'
-            ]);
-        }
-        if (empty($transdate)) {
-            $this->db->transRollback();
-            return $this->response->setJSON([
-                'sukses' => 0,
-                'pesan' => 'Transdate is required!'
-            ]);
-        }
-        if (empty($customerid)) {
-            $this->db->transRollback();
-            return $this->response->setJSON([
-                'sukses' => 0,
-                'pesan' => 'Customer is required!'
-            ]);
-        }
-        if (empty($description)) {
-            $this->db->transRollback();
-            return $this->response->setJSON([
-                'sukses' => 0,
-                'pesan' => 'Description is required!'
-            ]);
-        }
+         try {
+            if (empty($id)) throw new Exception("Detail ID is required!");
+            if (empty($transcode)) throw new Exception("Product is required!");
+            if (empty($transdate)) throw new Exception("UOM is required!");
+            if (empty($customerid)) throw new Exception("Quantity must be greater than 0!");
+            if (empty($description)) throw new Exception("Price must be greater than 0!");
 
-        // Update data invoice
-        $data = [
-            'transcode' =>$transcode,
-            'transdate' => $transdate,
-            'customerid' => $customerid,
-            'description' => $description,
-            'updateddate' => date('Y-m-d H:i:s'),
-            'updatedby' => getSession('userid'),
-        ];
+            $data = $this->invoiceHeaderModel->getOne($id);
+            if (empty($data)) throw new Exception("Detail not found!");
 
-        $this->invoiceHeaderModel->edit($data, $id);
+            $this->invoiceHeaderModel->edit([
+                'id' => $id,
+                'transcode' => $transcode,
+                'transdate' => $transdate,
+                'customerid' => $customerid,
+                'description' => $description,
+                'updateddate' => date('Y-m-d H:i:s'),
+                'updatedby' => getSession('userid'),
+            ], $id);
 
-        if ($this->db->transStatus() === false) {
+            if ($this->db->transStatus() === false) {
+                $this->db->transRollback();
+                return $this->response->setJSON([
+                    'sukses' => 0,
+                    'pesan' => 'Failed to update invoice data'
+                ]);
+            } else {
+                // Update grand total in header
+                $this->updateGrandTotal($data['id']);
+
+                $this->db->transCommit();
+                return $this->response->setJSON([
+                    'sukses' => 1,
+                    'pesan' => 'Invoice updated successfully!',
+                    'csrfToken' => csrf_hash()
+                ]);
+            }
+        } catch (Exception $e) {
             $this->db->transRollback();
             return $this->response->setJSON([
                 'sukses' => 0,
-                'pesan' => 'Failed to update invoice data'
-            ]);
-        } else {
-            $this->db->transCommit();
-            return $this->response->setJSON([
-                'sukses' => 1,
-                'pesan' => 'Invoice updated successfully!',
-                'csrfToken' => csrf_hash()
+                'pesan' => $e->getMessage()
             ]);
         }
-
-        $this->db->transComplete();
     }
 
     public function deleteData()
     {
         $invoiceId = decrypting($this->request->getPost('id'));
-        $res = [];
 
         $this->db->transBegin();
 
@@ -288,8 +264,6 @@ protected $db;
                 'csrfToken' => csrf_hash()
             ]);
         }
-
-        $this->db->transComplete();
     }
 
     // Detail methods
@@ -358,7 +332,6 @@ protected $db;
         $uomid = $this->request->getPost('uomid');
         $qty = $this->request->getPost('qty');
         $price = $this->request->getPost('price');
-        $res = [];
 
         $this->db->transBegin();
         try {
@@ -389,7 +362,7 @@ protected $db;
                 ]);
             } else {
                 // Update grand total in header
-                $grandtotal = $this->updateGrandTotal($detail['headerid']);
+                $this->updateGrandTotal($detail['headerid']);
 
                 $this->db->transCommit();
                 return $this->response->setJSON([
@@ -410,7 +383,6 @@ protected $db;
     public function deleteDetail()
     {
         $detailid = $this->request->getPost('id');
-        $res = [];
 
         $this->db->transBegin();
 
@@ -451,8 +423,6 @@ protected $db;
                 'csrfToken' => csrf_hash()
             ]);
         }
-
-        $this->db->transComplete();
     }
 
     public function getDetails()
