@@ -92,6 +92,7 @@ $routes->group('project', function ($routes) {
     $routes->add('update', 'Project::updateData', $this->noauth);
     $routes->add('delete', 'Project::deleteData', $this->noauth);
     $routes->add('export', 'Project::exportexcel');
+    $routes->add('formImport', 'Invoice::formImport', $this->noauth);
     $routes->get('generatePdf', 'Project::generatePdf');
     $routes->get('generatePdf/(:any)', 'Project::generatePdf/$1', $this->noauth);
 });

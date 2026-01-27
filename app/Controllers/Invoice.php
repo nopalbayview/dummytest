@@ -56,7 +56,7 @@ protected $db;
             ->make();
         
         $table->updateRow(function ($db, $no) {
-            $subtotal = $db->qty * $db->price;
+            //$subtotal = $db->qty * $db->price;
             $btn_edit = "<button type='button' class='btn btn-sm btn-warning' onclick=\"editDetail('{$db->id}', '{$db->productid}', '{$db->uomid}', '{$db->qty}', '{$db->price}', '{$db->productname}', '{$db->uomnm}')\"><i class='bx bx-edit-alt'></i></button>";
             $btn_hapus = "<button type='button' class='btn btn-sm btn-danger' onclick=\"deleteDataDt(this, '{$db->id}')\"><i class='bx bx-trash'></i></button>";
             return [
@@ -64,7 +64,7 @@ protected $db;
                 $db->productname,
                 $db->uomnm,
                 number_format($db->qty),
-                formatNumber($subtotal, '.', ',', 3),
+                formatNumber($db->price, '.', ',', 3),
                 "<div style='display:flex;align-items:center;justify-content:center;'>$btn_edit&nbsp;$btn_hapus</div>"
             ];
         });
@@ -445,7 +445,7 @@ protected $db;
         try {
             if (empty($headerid)) throw new Exception("Header ID is required!");
 
-            $details = $this->invoiceDetailModel->getByInvoiceId($headerid);
+            $details = $this->invoiceDetailModel->getAllByHeader($headerid);
             $grandtotal = 0;
 
             $formattedDetails = [];

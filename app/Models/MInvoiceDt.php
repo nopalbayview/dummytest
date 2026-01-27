@@ -83,15 +83,15 @@ class MInvoiceDt extends Model
             ->getResultArray();
     }
 
-    public function getByInvoiceId($headerid)
-    {
-        return $this->builder
-            ->select('trinvoicedt.*, p.productname as product_name')
-            ->join('msproduct p', 'p.id = trinvoicedt.productid', 'left')
-            ->where('trinvoicedt.headerid', $headerid)
-            ->get()
-            ->getResultArray();
-    }
+    //public function getByInvoiceId($headerid)
+    //{
+    //    return $this->builder
+    //        ->select('trinvoicedt.*, p.productname as product_name')
+    //        ->join('msproduct p', 'p.id = trinvoicedt.productid', 'left')
+    //        ->where('trinvoicedt.headerid', $headerid)
+    //        ->get()
+    //        ->getResultArray();
+    //}
     public function getOne($id)
     {
         return $this->builder
