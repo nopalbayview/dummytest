@@ -37,8 +37,8 @@ class MInvoiceDt extends Model
             null,           // No
             'p.productname', // Product
             'u.uomnm',       // UOM
-            'd.qty',         // Qty
-            'd.price',       // Price
+            'trinvoicedt.qty',  // Qty
+            'trinvoicedt.price',      // Price
             null,           // Actions
             null,           // Created By
             null,           // Updated By
@@ -50,45 +50,68 @@ class MInvoiceDt extends Model
     }
 
 
-    public function datatable()
+    public function datatable($headerid = null, $invoice = [])
     {
-        $headerid = service('request')->getPost('headerid'); // ambil dari ajax.data
+        $build = $this->builder
+            ->select('trinvoicedt.*, p.productname, u.uomnm')
+            ->join('msproduct p', 'p.id = trinvoicedt.productid', 'left')
+            ->join('msuom u', 'u.id = trinvoicedt.uomid', 'left');
 
-        $builder = $this->dbs->table('trinvoicedt d')
-            ->select('d.*, p.productname, u.uomnm')
-            ->join('msproduct p', 'p.id = d.productid', 'left')
-            ->join('msuom u', 'u.id = d.uomid', 'left');
-
+        // Apply headerid filter
         if (!empty($headerid)) {
-            $builder->where('d.headerid', $headerid);
+            $build->where('trinvoicedt.headerid', $headerid);
         }
-        return $builder;
+        //if (!empty($headerid['columnName'])) {
+        //    $build->orderBy($headerid['columnName'], $headerid['columnOrder']);
+        //}
+        if (!empty($invoice['columnName'])) {
+            $build->orderBy($invoice['columnName'], $invoice['columnOrder']);
+        } else {
+            $build->orderBy('trinvoicedt.id', 'asc');
+        }
+        return $build;
     }
 
     public function getAllByHeader($headerid)
     {
-        return $this->builder->where('headerid', $headerid)->get()->getResultArray();
-    }
-
-    public function getByInvoiceId($headerid)
-    {
-        return $this->dbs->table('trinvoicedt d')
-            ->select('d.*, p.productname as product_name')
-            ->join('msproduct p', 'p.id = d.productid', 'left')
-            ->where('d.headerid', $headerid)
+        return $this->builder
+            ->select('trinvoicedt.*, p.productname, u.uomnm')
+            ->join('msproduct p', 'p.id = trinvoicedt.productid', 'left')
+            ->join('msuom u', 'u.id = trinvoicedt.uomid', 'left')
+            ->where('trinvoicedt.headerid', $headerid)
             ->get()
             ->getResultArray();
     }
 
-    public function getDetailsByHeader($headerid)
+    public function getByInvoiceId($headerid)
     {
-        return $this->where('headerid', $headerid)->findAll();
+        return $this->builder
+            ->select('trinvoicedt.*, p.productname as product_name')
+            ->join('msproduct p', 'p.id = trinvoicedt.productid', 'left')
+            ->where('trinvoicedt.headerid', $headerid)
+            ->get()
+            ->getResultArray();
     }
-
     public function getOne($id)
     {
-        return $this->builder->where('id', $id)->get()->getRowArray();
+        return $this->builder
+            ->select('trinvoicedt.*, p.productname, u.uomnm')
+            ->join('msproduct p', 'p.id = trinvoicedt.productid', 'left')
+            ->join('msuom u', 'u.id = trinvoicedt.uomid', 'left')
+            ->where('trinvoicedt.id', $id)
+            ->get() 
+            ->getRowArray();
     }
+
+    public function getDetailsByHeader($headerid)
+    {
+        return $this->builder
+            ->select('trinvoicedt.*, p.productname, u.uomnm')
+            ->join('msproduct p', 'p.id = trinvoicedt.productid', 'left')
+            ->join('msuom u', 'u.id = trinvoicedt.uomid', 'left')
+            ->where('trinvoicedt.headerid', $headerid)
+            ->get()->getResultArray();
+    }   
 
     public function store($data)
     {
@@ -97,16 +120,16 @@ class MInvoiceDt extends Model
 
     public function edit($data, $id)
     {
-        return $this->builder->update($data, ['id' => $id]);
+        return $this->builder
+        ->where('trinvoicedt.id', $id)->update($data);
     }
 
     public function destroy($column, $value)
     {
         return $this->builder->delete([$column => $value]);
     }
-
-    public function updateGrandTotal($headerid, $grandtotal)
-    {
-    return $this->builder->update(['grandtotal' => $grandtotal], ['id' => $headerid]);
-    }
+    //public function updateGrandTotal($headerid, $grandtotal)
+    //{
+    //return $this->builder->update(['grandtotal' => $grandtotal], ['id' => $headerid]);
+    //}
 }

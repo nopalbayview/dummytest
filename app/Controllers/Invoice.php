@@ -42,8 +42,19 @@ protected $db;
 
     public function detailDatatable()
     {
+        $headerid = $this->request->getPost('headerid');
+        
+        // Validate headerid
+        if (empty($headerid)) {
+            return $this->response->setJSON([
+                'error' => 'Header ID is required'
+            ])->setStatusCode(400);
+        }
+
         $table = Datatables::method([MInvoiceDt::class, 'datatable'], 'searchable')
+            ->setParams(['headerid' => $headerid])
             ->make();
+        
         $table->updateRow(function ($db, $no) {
             $subtotal = $db->qty * $db->price;
             $btn_edit = "<button type='button' class='btn btn-sm btn-warning' onclick=\"editDetail('{$db->id}', '{$db->productid}', '{$db->uomid}', '{$db->qty}', '{$db->price}', '{$db->productname}', '{$db->uomnm}')\"><i class='bx bx-edit-alt'></i></button>";
@@ -248,6 +259,7 @@ protected $db;
             ]);
         }
 
+        $this->invoiceDetailModel->destroy('headerid', $invoiceId);
         $this->invoiceHeaderModel->destroy('id', $invoiceId);
 
         if ($this->db->transStatus() === false) {
@@ -269,7 +281,7 @@ protected $db;
     // Detail methods
     public function addDetail()
     {
-        $detailid = $this->request->getPost('headerid');
+        $headerid = $this->request->getPost('headerid');
         $productid = $this->request->getPost('productid');
         $uomid = $this->request->getPost('uomid');
         $qty = $this->request->getPost('qty');
@@ -277,15 +289,14 @@ protected $db;
 
         $this->db->transBegin();
         try {
-            if (empty($detailid)) throw new Exception("Header ID is required!");
+            if (empty($headerid)) throw new Exception("Header ID is required!");
             if (empty($productid)) throw new Exception("Product is required!");
             if (empty($uomid)) throw new Exception("UOM is required!");
             if (empty($qty) || $qty <= 0) throw new Exception("Quantity must be greater than 0!");
-            if (empty($price) || $price <= 0) throw new Exception("Price must be greater than 0!");
-            if (!is_numeric($price)) throw new Exception("Price must be a valid number!");
-
+            if (!is_numeric($price) || $price <= 0) throw new Exception("Price must be a valid number greater than 0!");
+            
             $this->invoiceDetailModel->store([
-                'headerid' => $detailid,
+                'headerid' => $headerid,
                 'productid' => $productid,
                 'uomid' => $uomid,
                 'qty' => $qty,
@@ -306,7 +317,7 @@ protected $db;
                 ]);
             } else {
                 // Update grand total in header
-                $grandtotal = $this->updateGrandTotal($detailid);
+                $grandtotal = $this->updateGrandTotal($headerid);
 
                 $this->db->transCommit();
                 return $this->response->setJSON([
@@ -452,7 +463,8 @@ protected $db;
                     'qty' => $detail['qty'],
                     'price' => $detail['price'],
                     'subtotal' => $subtotal,
-                    'action' => "<button type='button' class='btn btn-sm btn-danger btn-delete-detail' data-id='" . $detail['id'] . "'><i class='bx bx-trash'></i></button>"
+                    'action' => 
+                    "<button type='button' class='btn btn-sm btn-danger btn-delete-detail' data-id='" . $detail['id'] . "'><i class='bx bx-trash'></i></button>"
                 ];
             }
 
@@ -505,7 +517,7 @@ protected $db;
         }
 
         // Update ke header lewat model
-        $this->invoiceHeaderModel->updateGrandTotal($headerid, $grandtotal);
+        $this->invoiceHeaderModel->update($headerid, ['grandtotal' =>$grandtotal]);
 
         return $grandtotal;
     }
