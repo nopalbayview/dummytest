@@ -11,8 +11,11 @@
     /* sembunyikan scroll horizontal */
     padding-right: 8px;
     /* biar scrollbar tidak nutup konten */
+    
   }
 </style>
+
+ 
 
 <div class="main-content content margin-t-4">
   <!-- CSRF Token -->
@@ -60,8 +63,7 @@
 
     <div class="form-footer mt-3">
       <button type="submit" id="btn-submit" class="btn btn-primary btn-sm d-flex align-items-center">
-        <i class="bx bx-check me-1"></i> <?= ($form_type == 'edit' ? 'Update' : 'Save') ?>
-      </button>
+        <i class="bx bx-check me-1"></i> <?= ($form_type == 'edit' ? 'Update' : 'Save') ?>  
     </div>
   </form>
 
@@ -141,13 +143,14 @@
             </thead>
             <tbody>
             </tbody>
-</table>
+          </table>
         </div>
       </div>
     </div>
     <?php endif; ?>
   <?php endif; ?>
 </div>
+<?= $this->include('template/v_footer') ?>
 
 <script>
   $(document).ready(function() {
@@ -299,8 +302,11 @@
       }
     });
 
-    loadTable();
-
+    // Delay DataTable initialization to avoid conflicts
+    setTimeout(function() {
+        loadTable();
+    }, 100);
+    
     // Validasi input angka untuk field price
     $('#price').on('input', function() {
       let value = $(this).val();
@@ -334,6 +340,12 @@
   });
 
   function loadTable() {
+    // Check if DataTable already initialized
+    if ($.fn.DataTable.isDataTable('#detailTable')) {
+      // Destroy existing DataTable before reinitializing
+      $('#detailTable').DataTable().destroy();
+    }
+    
     $('#detailTable').DataTable({
       processing: true,
       serverSide: true,
@@ -400,28 +412,207 @@
     loadTable();
   }
 
-  function editDetail(id, productId, uomId, qty, price, productName = '', uomName = '') {
-    $('#detailid').val(id);
+  function openEditModal(detailId) {
+    console.log('openEditModal called with detailId:', detailId);
     
-    // Untuk Product - buat option baru jika belum ada
-    if ($('#productid').find(`option[value="${productId}"]`).length === 0) {
-        $('#productid').append(new Option(productName || 'Product', productId, true, true));
-    }
-    $('#productid').val(productId).trigger('change');
-    
-    // Untuk UOM - buat option baru jika belum ada
-    if ($('#uomid').find(`option[value="${uomId}"]`).length === 0) {
-        $('#uomid').append(new Option(uomName || 'UOM', uomId, true, true));
-    }
-    $('#uomid').val(uomId).trigger('change');
-    
-    $('#qty').val(parseFloat(qty));
-    $('#price').val(parseFloat(price));
+    // Load detail data via AJAX
+    $.ajax({
+        url: '<?= base_url("invoice/getSingleDetail") ?>',
+        type: 'POST',
+        data: {
+            detailid: detailId,
+            csrf_test_name: $('#csrf_token').val()
+        },
+        dataType: 'json',
+        success: function(res) {
+            console.log('AJAX response:', res);
+            if (res.sukses == 1) {
+                // Generate modal form HTML with data
+                let formHtml = generateEditDetailForm(res.data);
+                console.log('Generated form HTML length:', formHtml.length);
+                
+                // Manually show modal using existing infrastructure
+                $('#modaldetail-title').html('<h4>Edit Invoice Detail</h4>');
+                $('#modaldetail-form').html(formHtml);
+                $('#modaldetail-size').removeClass().addClass('modal-dialog modal-lg');
+                
+                console.log('About to show modal...');
+                $('#modaldetail').modal('show');
+                
+                // Initialize Select2 after modal is shown
+                setTimeout(function() {
+                    console.log('Initializing Select2...');
+                    initializeModalSelect2(res.data);
+                    initializeModalValidation();
+                }, 300);
+            } else {
+                showNotif('error', res.pesan);
+            }
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            console.error('AJAX Error:', thrownError);
+            showError(thrownError + ", please contact administrator.");
+        }
+    });
+  }
 
-    $('#btn-detail')
-      .html('<i class="bx bx-check me-1"></i> Update')
-      .removeClass('btn-primary')
-      .addClass('btn-warning');
+  function generateEditDetailForm(data) {
+    return `
+      <form id="edit-detail-form" class="form">
+        <input type="hidden" id="edit-detailid" name="detailid" value="${data.id}">
+        
+        <div class="form-group mb-3">
+          <label class="form-label fw-bold">Product</label>
+          <select id="edit-productid" name="productid" class="form-select form-select-sm" required>
+            <option value="">Select Product</option>
+            <option value="${data.productid}" selected>${data.productname}</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="form-label fw-bold">UOM</label>
+          <select id="edit-uomid" name="uomid" class="form-select form-select-sm" required>
+            <option value="">Select UOM</option>
+            <option value="${data.uomid}" selected>${data.uomnm}</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="form-label fw-bold">Qty</label>
+          <input type="number" step="0.001" id="edit-qty" name="qty" class="form-control form-control-sm" value="${data.qty}" required>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="form-label fw-bold">Price</label>
+          <input type="number" id="edit-price" name="price" class="form-control form-control-sm" min="0" step="0.01" value="${data.price}" required>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="resetEditForm();">Reset</button>
+          <button type="button" class="btn btn-warning" onclick="submitEditDetailForm()">
+            <i class="bx bx-check me-1"></i> Update
+          </button>
+        </div>
+      </form>
+    `;
+  }
+
+  function submitEditDetailForm() {
+    let formData = {
+        detailid: $('#edit-detailid').val(),
+        productid: $('#edit-productid').val(),
+        uomid: $('#edit-uomid').val(),
+        qty: $('#edit-qty').val(),
+        price: $('#edit-price').val(),
+        csrf_test_name: $('#csrf_token').val()
+    };
+
+    $.ajax({
+        type: 'POST',
+        url: '<?= base_url("invoice/updateDetail") ?>',
+        data: formData,
+        dataType: "json",
+        success: function(res) {
+            if (res.sukses == 1) {
+                showNotif('success', res.pesan);
+                
+                // Close modal using existing function
+                close_modal('modaldetail');
+                
+                // Reload detail table
+                $('#detailTable').DataTable().ajax.reload(null, false);
+                
+                // Update CSRF token
+                $("#csrf_token").val(encrypter(res.csrfToken));
+            } else {
+                showNotif('error', res.pesan);
+                if (res.csrfToken) {
+                    $("#csrf_token").val(encrypter(res.csrfToken));
+                }
+            }
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            showError(thrownError + ", please contact administrator.");
+        }
+    });
+  }
+
+  function initializeModalSelect2(data) {
+    // Initialize Product Select2
+    $('#edit-productid').select2({
+        placeholder: '-- Select Product --',
+        minimumResultsForSearch: 0,
+        dropdownParent: $('#modaldetail'),
+        ajax: {
+            url: '<?= base_url("invoice/product/list") ?>',
+            type: 'POST',
+            dataType: 'json',
+            delay: 250,
+            data: params => ({
+                search: params.term
+            }),
+            processResults: function(data) {
+                return {
+                    results: data.items
+                };
+            }
+        }
+    });
+
+    // Initialize UOM Select2
+    $('#edit-uomid').select2({
+        placeholder: '-- Select UOM --',
+        minimumResultsForSearch: 0,
+        dropdownParent: $('#modaldetail'),
+        ajax: {
+            url: '<?= base_url("invoice/uomList") ?>',
+            type: 'POST',
+            dataType: 'json',
+            delay: 250,
+            data: params => ({
+                search: params.term
+            }),
+            processResults: function(data) {
+                return {
+                    results: data.results
+                };
+            }
+        }
+    });
+  }
+
+  function resetEditForm() {
+    console.log('Resetting edit form...');
+    
+    // Reset all form fields
+    $('#edit-detailid').val('');
+    $('#edit-productid').val(null).trigger('change');
+    $('#edit-uomid').val(null).trigger('change');
+    $('#edit-qty').val('');
+    $('#edit-price').val('');
+    
+    console.log('Form reset completed');
+  }
+  
+  function initializeModalValidation() {
+    // Validasi input angka untuk price field
+    $('#edit-price').on('input', function() {
+        let value = $(this).val();
+        let cleanedValue = value.replace(/[^0-9.]/g, '');
+        let parts = cleanedValue.split('.');
+        if (parts.length > 2) {
+            cleanedValue = parts[0] + '.' + parts.slice(1).join('');
+        }
+        $(this).val(cleanedValue);
+    });
+
+    // Prevent paste non-numeric characters for price field
+    $('#edit-price').on('paste', function(e) {
+        let pasteData = e.originalEvent.clipboardData.getData('text');
+        if (!/^[0-9.]+$/.test(pasteData)) {
+            e.preventDefault();
+        }
+    });
   }
 
   function resetDetailForm() {
@@ -655,5 +846,6 @@ $(document).ready(function() {
     });
 });
 </script>
+
 </body>
 </html>
