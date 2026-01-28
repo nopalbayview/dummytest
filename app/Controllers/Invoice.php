@@ -76,7 +76,7 @@ protected $db;
                 "<div style='display:flex;align-items:center;justify-content:center;'>$btn_edit&nbsp;$btn_hapus</div>"
             ];
         });
-        $table->toJson();
+        return $table->toJson();
     }
 
     public function index()
