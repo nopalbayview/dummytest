@@ -11,7 +11,6 @@ use App\Models\MProduct;
 use App\Models\MUOM;
 use CodeIgniter\HTTP\ResponseInterface;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Fpdf\Fpdf;
 use Exception;
 
 class Invoice extends BaseController
@@ -44,11 +43,20 @@ protected $db;
     {
         $headerid = $this->request->getPost('headerid');
         
-        // Validate headerid
+        // Fallback for URL parameter if POST is empty
         if (empty($headerid)) {
+            $urlParams = $this->request->getGet();
+            $headerid = $urlParams[0] ?? null;
+        }
+        
+        // Validate headerid
+        if (empty($headerid) || $headerid == 0) {
             return $this->response->setJSON([
-                'error' => 'Header ID is required'
-            ])->setStatusCode(400);
+                'data' => [],
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'draw' => $this->request->getPost('draw') ?? 1
+            ]);
         }
 
         $table = Datatables::method([MInvoiceDt::class, 'datatable'], 'searchable')
@@ -87,7 +95,7 @@ protected $db;
             ->make();
 
         $table->updateRow(function ($db, $no) {
-            $btn_edit = "<button type='button' class='btn btn-sm btn-warning' onclick=\"modalForm('Update Invoice - " . $db->transcode . "', 'modal-lg', '" . getURL('invoice/form/' . encrypting($db->id)) . "', {identifier: this})\"><i class='bx bx-edit-alt'></i></button>";
+            $btn_edit = "<a href='" . base_url('invoice/form/') . encrypting($db->id) . "' class='btn btn-sm btn-warning'><i class='bx bx-edit-alt'></i></a>";
             $btn_hapus = "<button type='button' class='btn btn-sm btn-danger' onclick=\"modalDelete('Delete Invoice - " . $db->transcode . "', {'link':'" . getURL('invoice/delete') . "', 'id':'" . encrypting($db->id) . "', 'pagetype':'table'})\"><i class='bx bx-trash'></i></button>";
 
             return [
@@ -127,16 +135,18 @@ protected $db;
             $uoms = [];
         }
 
-        $dt['view'] = view('master/invoice/v_form', [
+        return view('master/invoice/v_form', [
             'form_type' => $form_type,
             'row' => $row,
             'invoiceid' => $id,
             'customers' => $customer,
             'products' => $products,
             'uoms' => $uoms,
-        ]);
-        $dt['csrfToken'] = csrf_hash();
-        echo json_encode($dt);
+            'title' => ($form_type == 'edit' ? 'Edit Invoice' : 'Add Invoice'),
+            'akses' => null,
+            'breadcrumb' => $this->bc,
+            'section' => ($form_type == 'edit' ? 'Edit Invoice' : 'Add Invoice'),
+        ]);     
     }
 
     public function addData()
@@ -222,7 +232,8 @@ protected $db;
                 $this->db->transRollback();
                 return $this->response->setJSON([
                     'sukses' => 0,
-                    'pesan' => 'Failed to update invoice data'
+                    'pesan' => 'Failed to update invoice data',
+                    'csrfToken' => csrf_hash()
                 ]);
             } else {
                 // Update grand total in header
@@ -239,7 +250,8 @@ protected $db;
             $this->db->transRollback();
             return $this->response->setJSON([
                 'sukses' => 0,
-                'pesan' => $e->getMessage()
+                'pesan' => $e->getMessage(),
+                'csrfToken' => csrf_hash()
             ]);
         }
     }
@@ -504,7 +516,7 @@ protected $db;
         $this->response->setJSON(['items' => $data])->send();
         exit;
     }
-
+    
     public function updateGrandTotal($headerid)
     {
         // Ambil detail dari model
@@ -534,20 +546,20 @@ protected $db;
     }
 
     public function uomList()
-{
-    $search = $this->request->getPost('search') ?? '';
-    $uoms   = $this->uomModel->searchSelect2($search);
+    {
+        $search = $this->request->getPost('search') ?? '';
+        $uoms   = $this->uomModel->searchSelect2($search);
 
-    $results = array_map(function($u) {
-        return [
-            'id'   => $u['id'],
-            'text' => $u['text'] // sudah alias dari query
-        ];
-    }, $uoms);
-
-    return $this->response->setJSON([
-        'results' => $results,
-        'pagination' => ['more' => false]
-    ]);
-}
+        $results = array_map(function($u) {
+            return [
+                'id'   => $u['id'],
+                'text' => $u['text'] // sudah alias dari query
+            ]   ;
+        }, $uoms);
+        
+        return $this->response->setJSON([
+            'results' => $results,
+            'pagination' => ['more' => false]
+        ]);
+    }
 }

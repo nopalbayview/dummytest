@@ -1,3 +1,6 @@
+<?= $this->include('template/v_header') ?>
+<?= $this->include('template/v_appbar') ?>
+
 <style>
   .main-content {
     max-height: 85vh;
@@ -11,7 +14,11 @@
   }
 </style>
 
-<div class="main-content content">
+<div class="main-content content margin-t-4">
+  <!-- CSRF Token -->
+  <input type="hidden" id="csrf_token" value="<?= csrf_hash() ?>">
+  <input type="hidden" id="csrf_token_form" name="csrf_test_name" value="">
+  
   <!-- Form Header -->
   <h5 class="fw-bold mb-3"><?= ($form_type == 'edit') ? 'Edit Invoice' : 'Tambah Invoice' ?></h5>
   <form id="form-invoice" class="form" enctype="multipart/form-data">
@@ -51,8 +58,7 @@
       <textarea class="form-control form-control-sm" id="description" name="description" rows="3"><?= ($form_type == 'edit') ? ($row['description'] ?? '') : '' ?></textarea>
     </div>
 
-    <div class="modal-footer">
-      
+    <div class="form-footer mt-3">
       <button type="submit" id="btn-submit" class="btn btn-primary btn-sm d-flex align-items-center">
         <i class="bx bx-check me-1"></i> <?= ($form_type == 'edit' ? 'Update' : 'Save') ?>
       </button>
@@ -63,7 +69,13 @@
 
   <!-- Form Detail + Table -->
   <?php if ($form_type == 'edit') : ?>
-    <h5 class="mt-4">Invoice Detail</h5>
+    <?php if (empty($row['id'])): ?>
+      <div class="alert alert-warning">
+        <strong>Warning:</strong> Invoice ID not found. Detail table cannot be loaded.
+      </div>
+    <?php else: ?>
+      <h5 class="mt-4">Invoice Detail</h5>
+    <?php endif; ?>
     <form id="form-detail" class="form" enctype="multipart/form-data">
       <input type="hidden" name="headerid" value="<?= $row['id'] ?>">
       <input type="hidden" id="detailid" name="detailid" value="">
@@ -112,6 +124,7 @@
     <hr>
 
     <!-- Tabel Detail -->
+    <?php if (!empty($row['id'])): ?>
     <div class="card mt-4 shadow-sm w-100 gap">
       <div class="card-body">
         <div class="table-responsive margin-t-14p">
@@ -128,10 +141,11 @@
             </thead>
             <tbody>
             </tbody>
-          </table>
+</table>
         </div>
       </div>
     </div>
+    <?php endif; ?>
   <?php endif; ?>
 </div>
 
@@ -141,7 +155,7 @@
     // Submit header
     $('#form-invoice').on('submit', function(e) {
       e.preventDefault();
-      let csrf = decrypter($("#csrf_token").val());
+      let csrf = $("#csrf_token").val(); // No decrypter for CSRF token
       $("#csrf_token_form").val(csrf);
 
       let form_type = "<?= $form_type ?>";
@@ -161,9 +175,10 @@
           $("#csrf_token_form").val("");
           showNotif(res.sukses ? 'success' : 'error', res.pesan);
           if (res.sukses == 1) {
-            close_modal('modaldetail');
-            tbl.ajax.reload();
-
+            // Both add and edit modes redirect to listing
+            setTimeout(function() {
+              window.location.href = '<?= base_url("invoice") ?>';
+            }, 1500); // Wait 1.5 seconds for notification
           }
         },
         error: function(xhr, ajaxOptions, thrownError) {
@@ -220,7 +235,7 @@
     // Select2 dari server-side
     $('#customerid').select2({
       minimumResultsForSearch: 0,
-      dropdownParent: $('#form-invoice'),
+      dropdownParent: $(document.body),
       ajax: {
         url: '<?= base_url("invoice/customer/list") ?>',
         type: 'POST',
@@ -251,7 +266,7 @@
     $('#productid').select2({
       placeholder: '-- Select Product --',
       minimumResultsForSearch: 0,
-      dropdownParent: $('#form-detail'),
+      dropdownParent: $(document.body),
       ajax: {
         url: '<?= base_url("invoice/product/list") ?>',
         type: 'POST',
@@ -269,7 +284,7 @@
     $('#uomid').select2({
       placeholder: '-- Select UOM --',
       minimumResultsForSearch: 0,
-      dropdownParent: $('#form-detail'),
+      dropdownParent: $(document.body),
       ajax: {
         url: '<?= base_url("invoice/uomList") ?>',
         type: 'POST',
@@ -306,6 +321,16 @@
         e.preventDefault();
       }
     });
+
+    // Initialize detail table only in edit mode
+    <?php if ($form_type == 'edit'): ?>
+    // Ensure DataTable is properly initialized
+    if (typeof $.fn.DataTable !== 'undefined') {
+// loadTable() will be called after initialization
+    } else {
+      console.error('DataTable library not loaded');
+    }
+    <?php endif; ?>
   });
 
   function loadTable() {
@@ -313,14 +338,26 @@
       processing: true,
       serverSide: true,
       ajax: {
-        url: '<?= base_url("invoice/detailDatatable/" . ($row['id'] ?? 0)) ?>',
+        url: '<?= base_url("invoice/detailDatatable") ?>',
         type: 'POST',
         data: function(d) {
-          d.headerid = $('input[name="id"]').val();
+          var formId = $('input[name="id"]').val() || '<?= $row['id'] ?? 0 ?>';
+          d.headerid = formId;
           d.csrf_test_name = '<?= csrf_hash() ?>';
+          console.log('Detail table headerid:', d.headerid);
         },
-        error: function(xhr) {
-          console.error('DataTables Error:', xhr.status, xhr.responseText);
+        error: function(xhr, error, thrown) {
+          console.error('DataTables Error:', xhr.status, error, thrown);
+          console.error('Response:', xhr.responseText);
+          
+          // Show user-friendly error
+          if (xhr.status === 400) {
+            console.error('Bad Request - Header ID issue');
+          } else if (xhr.status === 404) {
+            console.error('Route not found - check URL');
+          } else {
+            console.error('Server error occurred');
+          }
         }
       },
       columns: [
@@ -338,6 +375,11 @@
       resetDetailForm();
     });
   }
+
+  // Show error message if headerid is 0
+  <?php if ($form_type == 'edit' && empty($row['id'])): ?>
+  console.error('Header ID is empty, cannot load detail table');
+  <?php endif; ?>
 
   function deleteDataDt(these, params) {
     let id = params;
@@ -393,3 +435,225 @@
       .addClass('btn-primary'); // ubah tombol kembali ke Add
   }
 </script>
+
+<!-- Notification functions (moved from footer to avoid conflicts) -->
+<script>
+// Initialize Notyf if not exists
+if (typeof notyf === 'undefined') {
+    var notyf = new Notyf({
+        position: {
+            x: 'right',
+            y: 'top',
+        },
+        types: [{
+            type: 'process',
+            background: 'grey',
+            icon: {
+                className: 'bx bx-radio-circle bx-burst bx-md text-white',
+                tagName: 'i',
+                text: ''
+            }
+        }]
+    });
+}
+
+function showNotif(type, msg, duration = 2000) {
+    notyf.open({
+        type: type,
+        message: msg,
+        duration: duration
+    });
+}
+
+function showSuccess(msg) {
+    notyf.success(msg);
+}
+
+function showError(msg) {
+    notyf.error(msg);
+}
+
+// CSRF functions - check if exists first
+if (typeof decrypter === 'undefined') {
+    function decrypter(encrypted) {
+        // Simple pass-through for now since we're not encrypting
+        return encrypted;
+    }
+}
+
+if (typeof encrypter === 'undefined') {
+    function encrypter(text) {
+        // Simple pass-through for now since we're not encrypting
+        return text;
+    }
+}
+
+// Modal delete function (exact same as footer for consistency)
+if (typeof modalDelete === 'undefined') {
+    function modalDelete(title, datas) {
+        // Create modal dynamically if not exists (exact same structure as footer)
+        if ($('#modaldel').length === 0) {
+            $('body').append(`
+                <div class="modal fade" id="modaldel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-backdrop-class="modal-backdrop-custom">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <div class="row w-100 dflex justify-between" style="padding:0px;height:max-content;">
+                                    <div class="col-10 dflex align-center">
+                                        <span class="modal-title fs-6set fw-normal" id="modaldel-title">
+                                        </span>
+                                    </div>
+                                    <div class="col-1 dflex align-center justify-end">
+                                        <button type="button" class="btn text-dark" style="font-size: 24px;width:max-content;height:max-content;padding: 0px;margin-right:8px;" onclick="close_modal('modaldel')">×</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-body">
+                                <span class="fw-normal fs-7set text-dark">Apakah anda yakin akan hapus data ?</span>
+                                <div class="plus-message">
+                                </div>
+                                <div id="modaldel-assets">
+                                </div>
+                            </div>
+                            <div class="modal-footer margin-t-2 p-x-2">
+                                <button type="button" class="btn btn-secondary" id="cancel-delete" onclick="close_modal('modaldel')"><span class="fw-normal fs-7">No, Keep It</span></button>
+                                <button type="button" class="btn btn-danger" id="confirm-delete"><span class="fw-normal fs-7">Yes, Delete It</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+
+        $("#modaldel-title").html(`<h4>${title}</h4>`);
+        $("#modaldel-assets").html("");
+        
+        let keys = Object.keys(datas);
+        for (let x of keys) {
+            if (x == 'plus-message') {
+                $('.plus-message').html(datas[x]);
+                continue;
+            }
+            $("#modaldel-assets").append(`<span class="re-set" key="${x}" vals="${datas[x]}"></span>`);
+        }
+        
+        $('#modaldel').modal('show');
+    }
+}
+
+// Close modal function (exact same as footer)
+if (typeof close_modal === 'undefined') {
+    function close_modal(modalid) {
+        $('#' + modalid).modal('hide');
+        if (modalid == 'modaldel') {
+            $("#modaldel-assets").html("");
+            $("#modaldel-title").text("")
+        }
+    }
+}
+
+// Confirm delete button handler (for detail delete)
+$(document).ready(function() {
+    $(document).on('click', '#confirm-delete', function() {
+        let link = "";
+        let id = "";
+        let pagetype = "";
+        let reloadpage = "";
+        let reloadurl = "";
+        let table_cls = "";
+        
+        $(".re-set").each(function() {
+            let k = $(this).attr('key');
+            let v = $(this).attr('vals');
+            if (k == 'link') {
+                link = v
+            } else if (k == 'id') {
+                id = v;
+            } else if (k == 'pagetype') {
+                pagetype = v;
+            } else if (k == 'reloadpage') {
+                reloadpage = v;
+            } else if (k == 'reloadurl') {
+                reloadurl = v;
+            } else if (k == 'table-cls') {
+                table_cls = v;
+            }
+        });
+
+        $.ajax({
+            url: link,
+            type: 'post',
+            data: {
+                id: id,
+                csrf_test_name: $('[name="csrf_test_name"]').val()
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.sukses != '0' || res.sukses != 0) {
+                    close_modal('modaldel');
+                    var pesan = (res.pesan !== undefined ? res.pesan : 'Data Berhasil dihapus');
+                    showSuccess(pesan);
+                    
+                    if (pagetype == 'pages') {
+                        $('#' + reloadpage).load(reloadurl, function() {
+                            // dp('#' + reloadpage);
+                        });
+                    } else if (pagetype == 'table') {
+                        if (typeof tbl !== 'undefined') {
+                            tbl.ajax.reload();
+                        }
+                    } else if (pagetype == 'tablespecific') {
+                        if (table_cls == 'tbl_sub') {
+                            if (typeof tbl_sub !== 'undefined') {
+                                tbl_sub.ajax.reload(function() {
+                                    $("#grand_total").text($("#span-gt").data('gt'));
+                                });
+                            }
+                        }
+                    } else if (pagetype == 'tablecredit') {
+                        if (typeof tbl_dt !== undefined) {
+                            tbl_dt.ajax.reload()
+                        }
+                    } else if (pagetype == 'tabledetail') {
+                        if (typeof tbl_sub !== undefined) {
+                            tbl_sub.ajax.reload();
+                        }
+                    } else if (pagetype == 'detail') {
+                        console.log('Reloading detail tables...');
+
+                        // Reload detail table
+                        if ($('#detailTable').length && $.fn.DataTable.isDataTable('#detailTable')) {
+                            $('#detailTable').DataTable().ajax.reload(function() {
+                                console.log('Detail table reloaded successfully');
+                            }, false);
+                        } else {
+                            console.warn('Detail table DataTable not found');
+                        }
+
+                        // Reload header table
+                        if (typeof tbl !== 'undefined' && tbl.ajax) {
+                            tbl.ajax.reload(function() {
+                                console.log('Header table reloaded successfully');
+                            });
+                        } else {
+                            console.warn('Header table DataTable not found');
+                        }
+                    }
+                } else {
+                    if (res.csrfToken) {
+                        $("#csrf_token").val(encrypter(res.csrfToken));
+                    }
+                    var pesan = (res.pesan !== undefined ? res.pesan : 'Data gagal dihapus');
+                    showNotif('error', pesan);
+                }
+            },
+            error: function(xhr, ajaxOptions, thrownError) {
+                close_modal('modaldel');
+                showError(thrownError + ", please contact administrator.");
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>

@@ -118,31 +118,23 @@ $routes->group('invoice', function ($routes) {
     $routes->add('form', 'Invoice::forms', $this->noauth);
     $routes->add('form/(:any)', 'Invoice::forms/$1', $this->noauth);
     $routes->add('update', 'Invoice::updateData', $this->noauth);
-    $routes->add('export', 'Invoice::exportExcel', $this->noauth);
-    $routes->add('pdf', 'Invoice::Fpdf', $this->noauth);
     $routes->add('delete', 'Invoice::deleteData', $this->noauth);
     $routes->add('getDetails', 'Invoice::getDetails', $this->noauth);
     $routes->add('addDetail', 'Invoice::addDetail', $this->noauth);
     $routes->add('updateDetail', 'Invoice::updateDetail', $this->noauth);
     $routes->add('deleteDetail', 'Invoice::deleteDetail', $this->noauth);
+    $routes->add('detailDatatable', 'Invoice::detailDatatable', $this->noauth);
     $routes->add('detailDatatable/(:any)', 'Invoice::detailDatatable/$1', $this->noauth);
-
     $routes->add('customerList', 'Invoice::customerList', $this->noauth);
-    $routes->add('getProducts', 'Invoice::getProducts', $this->noauth);
-    $routes->add('getUOMs', 'Invoice::getUOMs', $this->noauth);
-    $routes->add('formImport', 'Invoice::formImport', $this->noauth);
-    $routes->add('importExcel', 'Invoice::importExcel', $this->noauth);
-    $routes->add('exportPdf', 'Invoice::exportPdf', $this->noauth);
     $routes->add('customer/list', 'Invoice::customerList', $this->noauth);
+    $routes->add('getProducts', 'Invoice::getProducts', $this->noauth);
     $routes->add('product/list', 'Invoice::productList', $this->noauth);
+    $routes->add('getUOMs', 'Invoice::getUOMs', $this->noauth);
     $routes->add('uomList', 'Invoice::uomList', $this->noauth);
     $routes->add('updateGrandTotal', 'Invoice::updateGrandTotal', $this->noauth);
+    $routes->add('table', 'Invoice::datatable', $this->noauth);
     // Customer list routes
     });
 // -------------------------------------------------------->
 // Log Out
 $routes->add('/logout', 'User::logOut');
-
-//Export to excel routes
-$routes->get('Document/export', 'Document::export');
-$routes->get('Document/exportpdf', 'Document::exportpdf');

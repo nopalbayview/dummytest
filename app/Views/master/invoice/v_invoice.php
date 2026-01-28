@@ -5,10 +5,10 @@
         <div class="card-header dflex align-center justify-between">
             <div class="dflex align-center" style="gap: 10px;">
             </div>
-            <button class="btn btn-primary dflex align-center" onclick="return modalForm('Add Invoice', 'modal-lg', '<?= getURL('invoice/form') ?>')">
+            <a href="<?= base_url('invoice/form') ?>" class="btn btn-primary dflex align-center">
                 <i class="bx bx-plus-circle margin-r-2"></i>
                 <span class="fw-normal fs-7">Add New</span>
-            </button>
+            </a>
         </div>
         <div class="card-body">
             <div class="table-responsive margin-t-14p">
