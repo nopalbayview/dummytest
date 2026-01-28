@@ -65,7 +65,8 @@ protected $db;
         
         $table->updateRow(function ($db, $no) {
             //$subtotal = $db->qty * $db->price;
-            $btn_edit = "<button type='button' class='btn btn-sm btn-warning' onclick=\"editDetail('{$db->id}', '{$db->productid}', '{$db->uomid}', '{$db->qty}', '{$db->price}', '{$db->productname}', '{$db->uomnm}')\"><i class='bx bx-edit-alt'></i></button>";
+            $btn_edit = "<button type='button' class='btn btn-sm btn-warning btn-edit-detail' data-id='{$db->id}' onclick=\"openEditModal('{$db->id}')\">
+            <i class='bx bx-edit-alt'></i></button>";
             $btn_hapus = "<button type='button' class='btn btn-sm btn-danger' onclick=\"deleteDataDt(this, '{$db->id}')\"><i class='bx bx-trash'></i></button>";
             return [
                 $no,
@@ -561,5 +562,33 @@ protected $db;
             'results' => $results,
             'pagination' => ['more' => false]
         ]);
+    }
+
+    public function getSingleDetail()
+    {
+        $detailId = $this->request->getPost('detailid');
+        
+        try {
+            if (empty($detailId)) {
+                throw new Exception("Detail ID is required!");
+            }
+
+            $detail = $this->invoiceDetailModel->getOne($detailId);
+            if (empty($detail)) {
+                throw new Exception("Detail not found!");
+            }
+
+            return $this->response->setJSON([
+                'sukses' => 1,
+                'data' => $detail,
+                'csrfToken' => csrf_hash()
+            ]);
+        } catch (Exception $e) {
+            return $this->response->setJSON([
+                'sukses' => 0,
+                'pesan' => $e->getMessage(),
+                'csrfToken' => csrf_hash()
+            ]);
+        }
     }
 }

@@ -129,6 +129,7 @@ $routes->group('invoice', function ($routes) {
     $routes->add('customer/list', 'Invoice::customerList', $this->noauth);
     $routes->add('getProducts', 'Invoice::getProducts', $this->noauth);
     $routes->add('product/list', 'Invoice::productList', $this->noauth);
+    $routes->add('getSingleDetail', 'Invoice::getSingleDetail', $this->noauth);
     $routes->add('getUOMs', 'Invoice::getUOMs', $this->noauth);
     $routes->add('uomList', 'Invoice::uomList', $this->noauth);
     $routes->add('updateGrandTotal', 'Invoice::updateGrandTotal', $this->noauth);
