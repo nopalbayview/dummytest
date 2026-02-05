@@ -139,6 +139,22 @@ class Customer extends BaseController
             if (empty($telepon)) throw new Exception("Telephone masih kosong!");
             if (empty($email)) throw new Exception("Email masih kosong!");
 
+            if (!preg_match('/^[a-zA-Z0-9\s\.,]+$/', $nama)) {
+                throw new Exception("Nama hanya boleh huruf, angka, spasi, titik, dan koma");
+            }
+
+            if (!preg_match('/^[a-zA-Z0-9\s\.,]+$/', $alamat)) {
+                throw new Exception("Alamat hanya boleh huruf, angka, spasi, titik, dan koma");
+            }
+
+            if (!preg_match('/^\d{8,}$/', $telepon)) {
+                throw new Exception("Nomor telepon harus minimal 8 digit dan hanya angka!");
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new Exception("Format email tidak valid!");
+            }
+
             // Validasi ekstensi file
             $allowedExtensions = ['jpg', 'jpeg', 'png'];
             $extension = $foto->getExtension();
@@ -200,6 +216,22 @@ class Customer extends BaseController
             if (empty($alamat)) throw new Exception("Alamat masih kosong!");
             if (empty($telepon)) throw new Exception("Telepon masih kosong!");
             if (empty($email)) throw new Exception("Email masih kosong!");
+
+            if (!preg_match('/^[a-zA-Z0-9\s\.,]+$/', $nama)) {
+                    throw new Exception("Nama hanya boleh huruf, angka, spasi, titik, dan koma");
+                }
+
+                if (!preg_match('/^[a-zA-Z0-9\s\.,]+$/', $alamat)) {
+                    throw new Exception("Alamat hanya boleh huruf, angka, spasi, titik, dan koma");
+                }
+
+                if (!preg_match('/^\d{8,}$/', $telepon)) {
+                    throw new Exception("Nomor telepon harus minimal 8 digit dan hanya angka!");
+                }
+
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    throw new Exception("Format email tidak valid!");
+                }
 
             $data = [
                 'customername' => $nama,
@@ -284,6 +316,56 @@ class Customer extends BaseController
         echo json_encode($res);
     }
 
+    public function search()
+    {
+        // Support both GET and POST, prioritize 'q' parameter (Select2 standard)
+        $search = $this->request->getGet('q') ?? $this->request->getPost('q')
+               ?? $this->request->getGet('searchTerm') ?? $this->request->getPost('searchTerm');
+
+        $res = array();
+
+        try {
+            // Enhanced debug logging
+            log_message('debug', 'Customer search - Method: ' . $this->request->getMethod() . ', Search: ' . ($search ?? 'null'));
+
+            // If no search term, return initial data (first 20 customers)
+            if (empty($search)) {
+                $results = $this->customerModel->getInitialCustomers();
+                log_message('debug', 'Customer search - No search term, returning initial customers: ' . count($results));
+            } else {
+                // Search real database data
+                $results = $this->customerModel->searchSelect2($search);
+                log_message('debug', 'Customer search - Found ' . count($results) . ' real results for: "' . $search . '"');
+            }
+
+            // Format results for Select2
+            $formattedResults = [];
+            foreach ($results as $result) {
+                $formattedResults[] = [
+                    'id' => $result['id'] ?? $result->id,
+                    'text' => $result['text'] ?? $result->text ?? $result['customername'] ?? $result->customername
+                ];
+            }
+
+            $res['data'] = $formattedResults;
+            log_message('debug', 'Customer search - Returning ' . count($formattedResults) . ' formatted results');
+
+            $res['csrfToken'] = csrf_hash();
+            $res['search_term'] = $search;
+
+        } catch (Exception $e) {
+            log_message('error', 'Customer search error: ' . $e->getMessage());
+            $res = [
+                'data' => [],
+                'error' => $e->getMessage(),
+                'search_term' => $search
+            ];
+        }
+
+        $this->response->setJSON($res)->send();
+        exit;
+    }
+
     public function exportExcel()
     {
         $customer = $this->customerModel->datatable()->get()->getResultArray();
@@ -343,6 +425,8 @@ class Customer extends BaseController
         exit;
     }
 
+    
+
     public function printPDF()
     {
         $pdf = new Fpdf();
@@ -391,6 +475,71 @@ class Customer extends BaseController
 
         $pdf->Output('D', 'data_customer.pdf');
         exit;
+    }
+
+    public function formImport()
+    {
+        $dt['view'] = view('master/customer/v_import', []);
+        $dt['csrfToken'] = csrf_hash();
+        echo json_encode($dt);
+    }
+
+    function importExcel()
+    {
+        //untuk menangkap data yang dikirim dari front end
+        $datas = json_decode($this->request->getPost('datas'));
+        $res = array();
+        $this->db->transBegin();
+        try {
+            $undfhcustomer = 0;
+            $undfhcustomerarr = [];
+
+            foreach ($datas as $dt) {
+
+                // validasi minimal kolom
+                if (
+                    empty($dt[0]) || // customername
+                    empty($dt[1]) || // address
+                    empty($dt[2]) || // phone
+                    empty($dt[3])    // email
+                ) {
+                    //jika terkena validasi maka customer akan tercatat dan akan dikirim ke fe datanya
+                    $undfhcustomer++;
+                    $undfhcustomerarr[] = $dt[0] ?? '-';
+                    continue;
+                }
+
+                // Simpan customer
+                $this->customerModel->insert([
+                    'customername' => trim($dt[0]),
+                    'address'      => trim($dt[1]),
+                    'phone'        => trim($dt[2]),
+                    'email'        => trim($dt[3]),
+                    'filepath'     => isset($dt[4]) ? trim($dt[4]) : '',
+                    'createddate'  => date('Y-m-d H:i:s'),
+                    'createdby'    => getSession('userid'),
+                    'updateddate'  => date('Y-m-d H:i:s'),
+                    'updatedby'    => getSession('userid'),
+                ]);
+            }
+
+            $res = [
+                'sukses' => '1',
+                'undfhcustomer' => $undfhcustomer,
+                'undfhcustomerarr' => $undfhcustomerarr
+            ];
+            $this->db->transCommit();
+        } catch (Exception $e) {
+            $res = [
+                'sukses' => '0',
+                'err' => $e->getMessage(),
+                'traceString' => $e->getTraceAsString()
+            ];
+            $this->db->transRollback();
+        }
+        $this->db->transComplete();
+        $res['csrfToken'] = csrf_hash();
+        echo json_encode($res);
     }
 
     public function logOut()

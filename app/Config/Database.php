@@ -24,12 +24,32 @@ class Database extends Config
      *
      * @var array<string, mixed>
      */
+    //public array $default = [
+    //    'DSN'          => '',
+    //    'hostname'     => '10.21.1.180',
+    //    'username'     => 'postgres',
+    //    'password'     => 'Tian0106',
+    //    'database'     => 'dummytest',
+    //    'DBDriver'     => 'Postgre',
+    //    'DBPrefix'     => '',
+    //    'pConnect'     => false,
+    //    'DBDebug'      => true,
+    //    'charset'      => 'utf8',
+    //    'DBCollat'     => 'utf8_general_ci',
+    //    'swapPre'      => '',
+    //    'encrypt'      => false,
+    //    'compress'     => false,
+    //    'strictOn'     => false,
+    //    'failover'     => [],
+    //    'port'         => 5432,
+    //];
+
     public array $default = [
         'DSN'          => '',
         'hostname'     => 'localhost',
         'username'     => 'postgres',
-        'password'     => 'password',
-        'database'     => 'dummytest',
+        'password'     => 'postgres',
+        'database'     => 'dummy',
         'DBDriver'     => 'Postgre',
         'DBPrefix'     => '',
         'pConnect'     => false,
@@ -43,7 +63,6 @@ class Database extends Config
         'failover'     => [],
         'port'         => 5432,
     ];
-
     //    /**
     //     * Sample database connection for SQLite3.
     //     *

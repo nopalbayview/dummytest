@@ -2,20 +2,22 @@
 <?= $this->include('template/v_appbar') ?>
 <div class="main-content content margin-t-4">
     <div class="card p-x shadow-sm w-100">
-        <div class="card-header dflex align-center justify-between">
-            <div class="dflex align-center" style="gap: 10px;">
-                <button class="btn btn-primary dflex align-center" onclick="window.location.href='<?= getURL('category/export') ?>'">
-                    <i class="bx bx-export margin-r-2"></i>
-                    <span class="fw-normal fs-7">Export to Excel</span>
-                </button>
-                <button class="btn btn-primary dflex align-center" onclick="window.location.href='<?= getURL('category/exportPdf') ?>'">
-                    <i class="bx bx-export margin-r-2"></i>
-                    <span class="fw-normal fs-7">Export to PDF</span>
-                </button>
-            </div>
+        <div class="card-header dflex align-center justify-end">
+            <button class="btn btn-warning dflex align-center margin-r-2" onclick="window.location.href='<?= getURL('category/exportpdf') ?>'">
+                <i class="bx bx-printer margin-r-2"></i>
+                <span class="fw-normal fs-7">Print PDF</span>
+            </button>
             <button class="btn btn-primary dflex align-center" onclick="return modalForm('Add Category', 'modal-lg', '<?= getURL('category/form') ?>')">
                 <i class="bx bx-plus-circle margin-r-2"></i>
                 <span class="fw-normal fs-7">Add New</span>
+            </button>
+            <button class="btn btn-primary d-flex align-center margin-l-2" onclick="window.location.href='<?= getURL('category/export') ?>'">
+                <i class="bx bx-upload margin-r-2"></i>
+                <span class="fw-normal fs-7">Export Excel</span>
+            </button>
+            <button class="btn btn-primary dflex align-center margin-l-2" onclick="window.location.href='<?= getURL('category/exportPdf') ?>'">
+                <i class="bx bx-download margin-r-2"></i>
+                <span class="fw-normal fs-7">Import Excel</span>
             </button>
         </div>
         <div class="card-body">

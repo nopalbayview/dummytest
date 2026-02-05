@@ -23,6 +23,7 @@ class User extends BaseController
                 'User'
             ]
         ];
+        $this->db = \Config\Database::connect();
     }
 
     public function index()
@@ -46,6 +47,8 @@ class User extends BaseController
     {
         $username = $this->request->getPost('username');
         $password = $this->request->getPost('password');
+        //dd($this->request->getPost());
+        
         $res = array();
         $this->db->transBegin();
         try {
@@ -53,7 +56,7 @@ class User extends BaseController
             $row = $this->userModel->getByName($username);
             if (empty($row)) throw new Exception("User tidak terdaftar di sistem!");
             if (password_verify($password, $row['password'])) {
-                setSession('userid', $row['userid']);
+                setSession('userid', $row['id']);
                 setSession('name', $row['fullname']);
                 $res = [
                     'sukses' => '1',
@@ -82,8 +85,8 @@ class User extends BaseController
             ->make();
 
         $table->updateRow(function ($db, $no) {
-            $btn_edit = "<button type='button' class='btn btn-sm btn-warning' onclick=\"modalForm('Update User - " . $db->fullname . "', 'modal-lg', '" . getURL('user/form/' . encrypting($db->userid)) . "', {identifier: this})\"><i class='bx bx-edit-alt'></i></button>";
-            $btn_hapus = "<button type='button' class='btn btn-sm btn-danger' onclick=\"modalDelete('Delete User - " . $db->fullname . "', {'link':'" . getURL('user/delete') . "', 'id':'" . encrypting($db->userid) . "', 'pagetype':'table'})\"><i class='bx bx-trash'></i></button>";
+            $btn_edit = "<button type='button' class='btn btn-sm btn-warning' onclick=\"modalForm('Update User - " . $db->fullname . "', 'modal-lg', '" . getURL('user/form/' . encrypting($db->id)) . "', {identifier: this})\"><i class='bx bx-edit-alt'></i></button>";
+            $btn_hapus = "<button type='button' class='btn btn-sm btn-danger' onclick=\"modalDelete('Delete User - " . $db->fullname . "', {'link':'" . getURL('user/delete') . "', 'id':'" . encrypting($db->id) . "', 'pagetype':'table'})\"><i class='bx bx-trash'></i></button>";
             return [
                 $no,
                 $db->fullname,
@@ -120,13 +123,31 @@ class User extends BaseController
         $fullname = $this->request->getPost('name');
         $email = $this->request->getPost('email');
         $phone = $this->request->getPost('phone');
-        $res = array();
+        $res = [];
 
         $this->db->transBegin();
         try {
             if (empty($username)) throw new Exception("Username dibutuhkan!");
             if (empty($password)) throw new Exception("Password dibutuhkan!");
             if (empty($fullname)) throw new Exception("Fullname masih kosong!");
+            if (empty($email)) throw new Exception("Email masih kosong!");
+            if (empty($phone)) throw new Exception("Nomor Telepon masih kosong!");
+            
+            if (!preg_match('/^[a-zA-Z0-9._]{3,30}$/', $username)) {
+                throw new Exception("Username hanya boleh huruf, angka, titik, dan underscore (3–30 karakter)");
+            }
+
+            if (!preg_match('/^[a-zA-Z\s]{3,100}$/', $fullname)) {
+                throw new Exception("Fullname hanya boleh huruf dan spasi");
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new Exception("Format email tidak valid!");
+            }
+            if (!preg_match('/^\d{8,}$/', $phone)) {
+                throw new Exception("Nomor telepon harus minimal 8 digit dan hanya angka!");
+               }
+
             $row = $this->userModel->getByName($fullname);
             if (!empty($row)) throw new Exception("User dengan username ini sudah terdaftar!");
             $this->userModel->store([
@@ -173,8 +194,26 @@ class User extends BaseController
         try {
             if (empty($username)) throw new Exception("Username dibutuhkan!");
             if (empty($fullname)) throw new Exception("Fullname masih kosong!");
-            $row = $this->userModel->getByName($fullname);
-            if (!empty($row)) throw new Exception("User dengan username ini sudah terdaftar!");
+            if (empty($email)) throw new Exception("Email masih kosong!");
+            if (empty($phone)) throw new Exception("Nomor Telepon masih kosong!");
+            $row = $this->userModel->getByName($username);
+            if (!empty($row) && $row['id'] != $userid) throw new Exception("User dengan username ini sudah terdaftar!");
+
+            if (!preg_match('/^[a-zA-Z0-9._]{3,30}$/', $username)) {
+                throw new Exception("Username hanya boleh huruf, angka, titik, dan underscore (3–30 karakter)");
+            }
+
+            if (!preg_match('/^[a-zA-Z\s]{3,100}$/', $fullname)) {
+                throw new Exception("Fullname hanya boleh huruf dan spasi");
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new Exception("Format email tidak valid!");
+            }
+            if (!preg_match('/^\d{8,}$/', $phone)) {
+                throw new Exception("Nomor telepon harus minimal 8 digit dan hanya angka!");
+            }
+
             $data = [
                 'username' => $username,
                 'fullname' => $fullname,
@@ -216,7 +255,7 @@ class User extends BaseController
         try {
             $row = $this->userModel->getOne($userid);
             if (empty($row)) throw new Exception("User tidak terdaftar!");
-            $this->userModel->destroy('userid', $userid);
+            $this->userModel->destroy('id', $userid);
             $res = [
                 'sukses' => '1',
                 'pesan' => 'Data berhasil dihapus!',

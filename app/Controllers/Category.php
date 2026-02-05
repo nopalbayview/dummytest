@@ -12,6 +12,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Fpdf\Fpdf;
 use Exception;
+use function PHPUnit\Framework\throwException;
 
 class Category extends BaseController
 {
@@ -88,11 +89,16 @@ class Category extends BaseController
             $table->updateRow(function ($db, $no) {
                 $btn_edit = "<button type='button' class='btn btn-sm btn-warning' onclick=\"modalForm('Update Category - " . $db->categoryname . "', 'modal-lg', '" . getURL('category/form/' . encrypting($db->id)) . "', {identifier: this})\"><i class='bx bx-edit-alt'></i></button>";
                 $btn_hapus = "<button type='button' class='btn btn-sm btn-danger' onclick=\"modalDelete('Delete Category - " . $db->categoryname . "', {'link':'" . getURL('category/delete') . "', 'id':'" . encrypting($db->id) . "', 'pagetype':'table'})\"><i class='bx bx-trash'></i></button>";
+
+                $foto_category = !empty($db->filepath)
+                    ? "<img src='" . htmlspecialchars($db->filepath) .  "' alt='foto category' width='50' style='border-radius: 50%; object-fit: cover;'>"
+                    : "<img( src:'uploads/category/default.png' alt='category' width='50' height:'50' style='border-radius:50%; object-fit: cover;'>";
+
                 return [
                     $no,
                     $db->categoryname,
                     $db->description,
-                    $db->filepath,
+                    $foto_category,
                     "<div style='display:flex;align-items:center;justify-content:center;'>$btn_edit&nbsp;$btn_hapus</div>"
                 ];
             });
@@ -130,7 +136,18 @@ class Category extends BaseController
             if (!$filepath->isValid()) throw new Exception("filepath tidak valid!");
             if (empty($categoryname)) throw new Exception("Nama kategori dibutuhkan!");
             if (empty($description)) throw new Exception("Deskripsi masih kosong!");
-         
+
+            if (!preg_match('/^[\pL\s\-\/&]{3,100}$/u', $categoryname)) {
+                throw new Exception("Kategori tidak valid");
+            }
+
+            if (empty(trim($description))) {
+                throw new Exception("Deskripsi wajib diisi");
+            }
+
+            if (strlen($description) < 10) {
+                throw new Exception("Deskripsi minimal 10 karakter");
+            }
 
             // Validasi ekstensi file
             $allowedExtensions = ['jpg', 'jpeg', 'png'];
@@ -351,6 +368,68 @@ class Category extends BaseController
         header('Cache-Control: max-age=0');
         $writer->save('php://output');
     }
+
+
+    public function formImport()
+    {
+        $dt['view'] = view('master/category/v_import', []);
+        $dt['csrfToken'] = csrf_hash();
+        echo json_encode($dt);
+    }
+
+    function importExcel()
+    {
+        //untuk menangkap data yang dikirim dari front end
+        $datas = json_decode($this->request->getPost('datas'));
+        $res = array();
+        $this->db->transBegin();
+        try {
+            $undfhcategory = 0;
+            $undfhcategoryarr = [];
+
+            foreach ($datas as $dt) {
+
+                // validasi minimal kolom
+                if (
+                    empty($dt[0]) || // categoryname
+                    empty($dt[1])    // description
+                ) {
+                    //jika terkena validasi maka category akan tercatat dan akan dikirim ke fe datanya
+                    $undfhcategory++;
+                    $undfhcategoryarr[] = $dt[0] ?? '-';
+                    continue;
+                }
+
+                // Simpan category
+                $this->categoryModel->insert([
+                    'categoryname' => trim($dt[1]),
+                    'description'  => trim($dt[2]),
+                    'createddate'  => date('Y-m-d H:i:s'),
+                    'createdby'    => getSession('userid'),
+                    'updateddate'  => date('Y-m-d H:i:s'),
+                    'updatedby'    => getSession('userid'),
+                ]);
+            }
+
+            $res = [
+                'sukses' => '1',
+                'undfhcategory' => $undfhcategory,
+                'undfhcategoryarr' => $undfhcategoryarr
+            ];
+            $this->db->transCommit();
+        } catch (Exception $e) {
+            $res = [
+                'sukses' => '0',
+                'err' => $e->getMessage(),
+                'traceString' => $e->getTraceAsString()
+            ];
+            $this->db->transRollback();
+        }
+        $this->db->transComplete();
+        $res['csrfToken'] = csrf_hash();
+        echo json_encode($res);
+    }
+
     public function exportPdf()
     {
         $categories = $this->categoryModel->findAll();

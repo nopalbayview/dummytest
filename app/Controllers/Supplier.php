@@ -77,6 +77,22 @@ class Supplier extends BaseController
             if (empty($email))
                 throw new Exception('Masukkan email');
 
+            if (!preg_match('/^[a-zA-Z0-9\s\.,]+$/', $suppliername)) {
+                throw new Exception("Nama Supplier hanya boleh huruf, angka, spasi, titik, dan koma");
+            }
+
+            if (!preg_match('/^[a-zA-Z0-9\s\.,]+$/', $address)) {
+                throw new Exception("Alamat hanya boleh huruf, angka, spasi, titik, dan koma");
+            }
+
+            if (!preg_match('/^\d{8,}$/', $phone)) {
+                throw new Exception("Nomor telepon harus minimal 8 digit dan hanya angka!");
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new Exception("Format email tidak valid!");
+            }
+
             $allowedExtensions = ['jpg', 'jpeg', 'png'];
             $extension = $filepath->getExtension();
             if (!in_array($extension, $allowedExtensions)) {
@@ -128,13 +144,17 @@ class Supplier extends BaseController
             $btn_edit = "<button type='button' class='btn btn-sm btn-warning' onclick=\"modalForm('Update User - " . $db->suppliername . "', 'modal-lg', '" . getURL('supplier/form/' . encrypting($db->id)) . "', {identifier: this})\"><i class='bx bx-edit-alt'></i></button>";
             $btn_hapus = "<button type='button' class='btn btn-sm btn-danger' onclick=\"modalDelete('Delete User - " . $db->suppliername . "', {'link':'" . getURL('supplier/delete') . "', 'id':'" . encrypting($db->id) . "', 'pagetype':'table'})\"><i class='bx bx-trash'></i></button>";
             $btn_print = "<button type='button' class='btn btn-sm btn-info' onclick=\"window.open('" . getURL('supplier/pdf/' . encrypting($db->id)) . "', '_blank')\"><i class='bx bx-printer'></i></button>";
+
+            $foto_supplier = !empty($db->filepath)
+                ? "<img src='" . htmlspecialchars($db->filepath) .  "' alt='foto product' width='50' style='border-radius: 50%; object-fit: cover;'>"
+                : "<img( src:'uploads/supplier/default.png' alt='foto product' width='50' height:'50' style='border-radius:50%; object-fit: cover;'>";
             return [
                 $no,
                 $db->suppliername,
                 $db->address,
                 $db->phone,
                 $db->email,
-                $db->filepath,
+                $foto_supplier,
                 "<div style='display:flex;align-items:center;justify-content:center;'>$btn_edit&nbsp;$btn_hapus&nbsp;$btn_print</div>"
             ];
         });
@@ -162,6 +182,24 @@ class Supplier extends BaseController
                 throw new Exception('Masukkan nomor HP');
             if (empty($email))
                 throw new Exception('Masukkan email');
+            if (empty($filepath->isValid())) 
+                throw new Exception("img is required!");
+
+            if (!preg_match('/^[a-zA-Z0-9\s\.,]+$/', $suppliername)) {
+                throw new Exception("Nama Supplier hanya boleh huruf, angka, spasi, titik, dan koma");
+            }
+
+            if (!preg_match('/^[a-zA-Z0-9\s\.,]+$/', $address)) {
+                throw new Exception("Alamat hanya boleh huruf, angka, spasi, titik, dan koma");
+            }
+
+            if (!preg_match('/^\d{8,}$/', $phone)) {
+                throw new Exception("Nomor telepon harus minimal 8 digit dan hanya angka!");
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new Exception("Format email tidak valid!");
+            }
 
             $data = [
                 'suppliername' => $suppliername,

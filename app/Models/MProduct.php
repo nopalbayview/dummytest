@@ -77,6 +77,45 @@ class MProduct extends Model
         return $this->builder->where($column, $value)->get()->getRowArray();
     }
 
+    public function getInitialProducts()
+    {
+        return $this->builder
+            ->select('id, productname')
+            ->orderBy('productname', 'ASC')
+            ->limit(20)
+            ->get()
+            ->getResultArray();
+    }
+
+    public function searchSelect2($search)
+    {
+        try {
+            $builder = $this->builder->select('id, productname as text');
+
+            // Split search term into keywords for better matching
+            $keywords = array_filter(explode(' ', trim($search)));
+
+            if (!empty($keywords)) {
+                $builder->groupStart();
+                foreach ($keywords as $keyword) {
+                    $keyword = trim($keyword);
+                    if (!empty($keyword)) {
+                        $builder->orLike('LOWER(productname)', strtolower($keyword));
+                    }
+                }
+                $builder->groupEnd();
+            }
+
+            return $builder
+                ->limit(20)
+                ->get()
+                ->getResultArray();
+        } catch (\Exception $e) {
+            log_message('error', 'MProduct searchSelect2 Error: ' . $e->getMessage());
+            return [];
+        }
+    }
+
     public function getAll(){
         return $this->builder->get()->getResultArray();
     }

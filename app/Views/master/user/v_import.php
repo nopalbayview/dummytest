@@ -31,7 +31,7 @@
 </form>
 <script>
     function downloadTemplate() {
-        var url = '<?= base_url('/downloadable/Template Product.xlsx') ?>';
+        var url = '<?= base_url('downloadable/Template User.xlsx') ?>';
         window.location.href = url;
     }
 
@@ -70,6 +70,8 @@
                     (ws['B' + o] && ws['B' + o].v !== undefined) ? ws['B' + o]['v'] : '',
                     (ws['C' + o] && ws['C' + o].v !== undefined) ? ws['C' + o]['v'] : '',
                     (ws['D' + o] && ws['D' + o].v !== undefined) ? ws['D' + o]['v'] : '',
+                    (ws['E' + o] && ws['E' + o].v !== undefined) ? ws['E' + o]['v'] : '',
+                    (ws['F' + o] && ws['F' + o].v !== undefined) ? ws['F' + o]['v'] : '',
                 ]);
             }
             //jika data sudah 500 data/ yang di setup di variable batch maka dikirim ke server ke function sendData
@@ -96,7 +98,7 @@
         })
     })
 
-    undfhproduct = 0
+    undfhuser = 0
 
     async function sendData(arr, isfinish = 'f') {
         //untuk delay
@@ -106,7 +108,7 @@
         $("#totalsent").text(formatRupiah(exp_number(textproses) + arr.length));
         // untuk mengirim data ke back end
         $.ajax({
-            url: '<?= base_url('product/importExcel') ?>',
+            url: '<?= base_url('user/importExcel') ?>',
             type: 'post',
             dataType: 'json',
             data: {
@@ -117,12 +119,12 @@
             success: function(res) {
                 $('#excelfile').removeAttr('disabled');
                 $("#csrf_token").val(encrypter(res.csrfToken));
-                undfhproduct += res.undfhproduct
+                undfhuser += res.undfhuser
                 //jika batch terakhir sudah selesai maka kirim notif
                 if (isfinish == 't') {
                     showNotif("success", "Data updated successfully");
-                    if (undfhproduct >= 1) {
-                        showNotif("error", `${undfhproduct} product dilewatkan`);
+                    if (undfhuser >= 1) {
+                        showNotif("error", `${undfhuser} user dilewatkan`);
                     }
                     setTimeout(() => {
                         close_modal('modaldetail');

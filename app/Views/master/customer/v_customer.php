@@ -3,7 +3,7 @@
 <div class="main-content content margin-t-4">
     <div class="card p-x shadow-sm w-100">
         <div class="card-header dflex align-center justify-end">
-        <button class="btn btn-warning dflex align-center margin-r-2" onclick="window.location.href='<?= getURL('customer/printpdf') ?>'">
+            <button class="btn btn-warning dflex align-center margin-r-2" onclick="window.location.href='<?= getURL('customer/printpdf') ?>'">
                 <i class="bx bx-printer margin-r-2"></i>
                 <span class="fw-normal fs-7">Print PDF</span>
             </button>
@@ -12,8 +12,12 @@
                 <span class="fw-normal fs-7">Add New</span>
             </button>
             <button class="btn btn-primary d-flex align-center margin-l-2" onclick="exportExcel()">
-                <i class="bx bx-download margin-r-2"></i>
+                <i class="bx bx-upload margin-r-2"></i>
                 <span class="fw-normal fs-7">Export Excel</span>
+            </button>
+            <button class="btn btn-primary dflex align-center margin-l-2" onclick="return modalForm('Import Customer', 'modal-lg', '<?= getURL('customer/formImport') ?>')">
+                <i class="bx bx-download margin-r-2"></i>
+                <span class="fw-normal fs-7">Import Excel</span>
             </button>
         </div>
         <div class="card-body">
