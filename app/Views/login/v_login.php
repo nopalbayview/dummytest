@@ -5,19 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?></title>
-<<<<<<< HEAD
     <link rel="stylesheet" href="<?= getURL('/css/template.css') ?>">
     <link rel="stylesheet" href="<?= getURL('/css/login.css') ?>">
     <link rel="stylesheet" href="<?= getURL('/css/boxicons.css') ?>">
     <link rel="stylesheet" href="<?= getURL('/css/notyf.css') ?>">
-=======
     <link rel="stylesheet" href="<?= getURL('css/template.css') ?>">
     <link rel="stylesheet" href="<?= getURL('css/login.css') ?>">
     <link rel="stylesheet" href="<?= getURL('css/boxicons.css') ?>">
     <link rel="stylesheet" href="<?= getURL('css/notyf.css') ?>">
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
 </head>
-
 <body>
     <div class="content">
         <div class="container-fluid sc-sm p-x">
@@ -93,19 +89,16 @@
 </body>
 
 </html>
-<<<<<<< HEAD
 <script src="<?= getURL('/js/jquery.js') ?>"></script>
 <script src="<?= getURL('/js/bootstrap.js') ?>"></script>
 <script src="<?= getURL('/js/editor.js') ?>"></script>
 <script src="<?= getURL('/js/notyf.js') ?>"></script>
 <script src="<?= getURL('/js/script.js') ?>"></script>
-=======
 <script src="<?= getURL('js/jquery.js') ?>"></script>
 <script src="<?= getURL('js/bootstrap.js') ?>"></script>
 <script src="<?= getURL('js/editor.js') ?>"></script>
 <script src="<?= getURL('js/notyf.js') ?>"></script>
 <script src="<?= getURL('js/script.js') ?>"></script>
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
 <script>
     var notif = new Notyf({
         position: {

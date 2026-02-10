@@ -65,11 +65,8 @@
                             <div class="card rounded bg-white w-100" style="padding: 0px;">
                                 <div class="card bg-primary-40 w-100 p-x p-y-3 dflex align-center justify-center">
                                     <div class="dflex align-center">
-<<<<<<< HEAD
                                         <img src="<?= getURL('images/dashboard/new.png') ?>" width="60" alt="">
-=======
                                         <img src="<?= getURL('/images/dashboard/new.png') ?>" width="60" alt="">
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
                                         <div class="row text-primary" style="margin-left: 20px;">
                                             <span class="fw-semibold fs-5">New Order</span>
                                             <span class="fw-semibold fs-6">6</span>
@@ -83,11 +80,8 @@
                                 <div class="card bg-violet-40 w-100">
                                     <div class="row text-violet">
                                         <div class="col-12 dflex justify-center">
-<<<<<<< HEAD
                                             <img src="<?= getURL('images/dashboard/process.png') ?>" width="45" alt="">
-=======
                                             <img src="<?= getURL('/images/dashboard/process.png') ?>" width="45" alt="">
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
                                         </div>
                                         <div class="col-12">
                                             <div class="row text-center">
@@ -104,11 +98,8 @@
                                 <div class="card bg-warning-40 w-100">
                                     <div class="row text-warning">
                                         <div class="col-12 dflex justify-center">
-<<<<<<< HEAD
                                             <img src="<?= getURL('images/dashboard/delivery.png') ?>" width="45" alt="">
-=======
                                             <img src="<?= getURL('/images/dashboard/delivery.png') ?>" width="45" alt="">
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
                                         </div>
                                         <div class="col-12">
                                             <div class="row text-center">
@@ -125,11 +116,8 @@
                                 <div class="card bg-success-40 w-100">
                                     <div class="row text-success">
                                         <div class="col-12 dflex justify-center">
-<<<<<<< HEAD
                                             <img src="<?= getURL('images/dashboard/delivered.png') ?>" width="45" alt="">
-=======
                                             <img src="<?= getURL('/images/dashboard/delivered.png') ?>" width="45" alt="">
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
                                         </div>
                                         <div class="col-12">
                                             <div class="row text-center">
@@ -146,11 +134,8 @@
                                 <div class="card bg-danger-40 w-100">
                                     <div class="row text-danger">
                                         <div class="col-12 dflex justify-center">
-<<<<<<< HEAD
                                             <img src="<?= getURL('images/dashboard/cancel.png') ?>" width="45" alt="">
-=======
                                             <img src="<?= getURL('/images/dashboard/cancel.png') ?>" width="45" alt="">
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
                                         </div>
                                         <div class="col-12">
                                             <div class="row text-center">

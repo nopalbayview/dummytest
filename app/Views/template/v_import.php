@@ -1,5 +1,4 @@
 <!-- CSS -->
-<<<<<<< HEAD
 <link rel="stylesheet" href="<?= getURL('css/template.css') ?>" />
 <link rel="stylesheet" href="<?= base_url('css/modal.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/mystyle.css') ?>">
@@ -39,7 +38,7 @@
 <script src="<?= base_url('js/chart.js') ?>"></script>
 <script src="<?= base_url('js/chartDatalabels.min.js') ?>"></script>
 <script src="<?= base_url('js/fullcalendar.js') ?>"></script>
-=======
+
 <link rel="stylesheet" href="<?= getURL('/css/template.css') ?>" />
 <link rel="stylesheet" href="<?= base_url('/css/modal.css') ?>">
 <link rel="stylesheet" href="<?= base_url('/css/mystyle.css') ?>">
@@ -79,4 +78,3 @@
 <script src="<?= base_url('/js/chart.js') ?>"></script>
 <script src="<?= base_url('/js/chartDatalabels.min.js') ?>"></script>
 <script src="<?= base_url('/js/fullcalendar.js') ?>"></script>
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf

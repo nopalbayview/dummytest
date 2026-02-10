@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <form id="importexcel" style="padding-inline: 0px;">
     <div class="row">
         <div>
@@ -133,7 +132,6 @@
         })
     }
 </script>
-=======
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -241,4 +239,4 @@ $(document).ready(function() {
     });
 });
 </script>
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
+

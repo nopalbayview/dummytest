@@ -32,7 +32,6 @@ class MInvoiceHd extends Model
 
     public function searchable()
     {
-<<<<<<< HEAD
         return [
             null,           // No
             'transcode',    // Transcode
@@ -67,27 +66,6 @@ class MInvoiceHd extends Model
         }
 
         return $builder;
-=======
-    return [
-        null,           // No
-        'transcode',    // Transcode
-        'transdate',    // Transdate
-        'mscustomer.customername', //Search by customername
-        'grandtotal',   // Grandtotal
-        'description',  // Description
-        null,           // Created By
-        null,           // Updated By
-        null            // Actions
-    ];
-}
-
-
-    public function datatable()
-    {
-        return $this->builder
-            ->select('trinvoicehd.*, mscustomer.customername')
-            ->join('mscustomer', 'mscustomer.id = trinvoicehd.customerid', 'left');
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
     }
 
     public function getOne($id)
@@ -100,7 +78,6 @@ class MInvoiceHd extends Model
             ->getRowArray();
     }
 
-<<<<<<< HEAD
     public function getHeader($column = null, $value = null)
     {
         $builder = $this->datatable();
@@ -112,8 +89,6 @@ class MInvoiceHd extends Model
         return $builder;
     }
 
-=======
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
     public function store($data)
     {
         return $this->builder->insert($data);
@@ -133,7 +108,6 @@ class MInvoiceHd extends Model
     {
         return $this->builder->get()->getResultArray();
     }
-<<<<<<< HEAD
 
     public function getInvoiceChunk($limit, $offset)
     {
@@ -203,6 +177,4 @@ class MInvoiceHd extends Model
 
         return $builder->countAllResults();
     }
-=======
->>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
 }
