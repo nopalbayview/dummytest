@@ -912,4 +912,83 @@ class Invoice extends BaseController
             'offset' => $offset
         ]);
     }
+
+    public function formImport()
+    {
+        $dt['view'] = view('master/invoice/v_import', []);
+        $dt['csrfToken'] = csrf_hash();
+        echo json_encode($dt);
+    }
+    
+    public function importExcel()
+    {
+        $datas = json_decode($this->request->getPost('datas'));
+        $res = array();
+        $this->db->transBegin();
+        try {
+            $undfhinvoice = 0;
+            $undfhinvoicearr = [];
+            $invalidcustomerarr = [];
+            foreach ($datas as $dt) {
+                if (
+                    empty($dt[0]) || // transcode
+                    empty($dt[1]) || // transdate
+                    empty($dt[2])    // customername
+                    // grandtotal bisa 0
+                    // description tidak wajib
+                ) {
+                    $undfhinvoice++;
+                    $undfhinvoicearr[] = $dt[0] ?? '-';
+                    continue;
+                }
+
+                $customername = trim($dt[2]);
+                $customer = $this->customerModel->getByName($customername);
+
+                if (!$customer) {
+                    $undfhinvoice++;
+                    $invalidcustomerarr[] = $customername;
+                    continue;
+                }
+
+                $this->invoiceHeaderModel->insert([
+                    'transcode' => trim($dt[0]),
+                    'transdate' => trim($dt[1]),
+                    'customerid' => $customer['id'],
+                    'grandtotal' => trim($dt[3]),
+                    'description' => isset($dt[4]) ? trim($dt[4]) : '',
+                    'createddate' => date('Y-m-d H:i:s'),
+                    'createdby' => getSession('userid'),
+                    'updateddate' => date('Y-m-d H:i:s'),
+                    'updatedby' => getSession('userid'),
+                    'isactive' => true,
+                ]);
+            }
+            $res = [
+                'sukses' => '1',
+                'undfhinvoice' => $undfhinvoice,
+                'undfhinvoicearr' => $undfhinvoicearr,
+                'invalidcustomerarr' => $invalidcustomerarr
+            ];
+            $this->db->transCommit();       
+        } catch (Exception $e) {
+            $res = [
+                'sukses' => '0',
+                'err' => $e->getMessage(),
+                'traceString' => $e->getTraceAsString()
+            ];
+            $this->db->transRollback();
+        }
+        $this->db->transComplete();
+        $res['csrfToken'] = csrf_hash();
+        echo json_encode($res);
+    }
+
+    public function downloadTmp()
+    {
+        return $this->response->download(
+            FCPATH . '/downloadable/TempalateInvoice.xlsx',
+            null
+        );
+    }
 }    

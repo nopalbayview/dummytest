@@ -123,6 +123,7 @@ $routes->group('invoice', function ($routes) {
     $routes->add('export', 'Invoice::exportExcel', $this->noauth);
     $routes->add('formImport', 'Invoice::formImport', $this->noauth);
     $routes->add('importExcel', 'Invoice::importExcel', $this->noauth);
+    $routes->add('downloadable', 'Invoice::downloadTmp', $this->noauth);
     $routes->add('pdf', 'Invoice::Fpdf', $this->noauth);
     $routes->add('delete', 'Invoice::deleteData', $this->noauth);
     $routes->add('getDetails', 'Invoice::getDetails', $this->noauth);

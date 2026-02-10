@@ -9,7 +9,7 @@
     </div>
     <div id="loading-alltrans" class="hiding">
         <h4>
-            <i class='bx bx-loader-circle bx-spin text-info'></i> Processing <span class="text-primary" id="totalsent">0</span> / <span id="alltotals" class="text-primary">100</span>
+            <i class='bx bx-loader-circle bx-spin text-info'></i> Processing <span class="text-primary" id="progressPercent">0</span>%
         </h4>
     </div>
     <div class="modal-footer dflex" style="justify-content: space-between !important;">
@@ -18,11 +18,11 @@
             <span class="fw-normal fs-7">Template</span>
         </button>
         <div style="margin-left: 0 !important; margin-right: 0 !important;" class="dflex">
-            <button class="btn btn-warning dflex button-import align-center margin-r-2" type="button" onclick="close_modal('modaldetail')">
+            <button class="btn btn-warning dflex button-import align-center margin-r-2" type="button" onclick="handleCancel()">
                 <i class="bx bx-x margin-r-2"></i>
                 <span class="fw-normal fs-7">Cancel</span>
             </button>
-            <button class="btn btn-primary dflex button-import align-center" type="submit">
+            <button id="btn-process" class="btn btn-primary dflex align-center" type="submit">
                 <i class="bx bx-check margin-r-2"></i>
                 <span class="fw-normal fs-7">Process</span>
             </button>
@@ -31,62 +31,66 @@
 </form>
 <script>
     function downloadTemplate() {
-        var url = '<?= base_url('/downloadable/Template Invoice.xlsx') ?>';
+        var url = '<?= base_url('/downloadable/TemplateInvoice.xlsx') ?>';
         window.location.href = url;
     }
 
+    let isCancelled = false;
+    let totalRows = 0;
+    let processedRows = 0;
+
     async function getFiles(e) {
-        //untuk ambil file dari input
+        isCancelled = false;
+        processedRows = 0;
         e = e || window.event;
         let file = e.target.files[0];
-        //membaca file excell ke memory
         let data = await file.arrayBuffer();
         let wb = XLSX.read(data);
-        // mengambil sheet pertama/A1
         let ws = wb.Sheets[wb.SheetNames[0]];
-        //untuk mencari  baris terakhir excell
-        let last_key = Object.keys(ws)
-        last_key.shift();
-        last_key.pop();
-        last_key = last_key.filter(key => key !== '!margins');
-        //Ambil cell terakhir "D12" dan diambil angkanya saja 12
-        let getlen = last_key[last_key.length - 1];
-        getlen = getlen.replace(/[^0-9\.]/g, '');
-        // untuk setup variable yang digunakan untuk ngebatch
-        let arr = [];
-        let offset = 500;
-        let keys = 0;
-        //untuk set progress data di ui
-        $("#alltotals").text(formatRupiah(getlen - 1));
-        //loop semua baris excell
-        for (let o = 1; o <= getlen * 1; o++) {
-            //dengan skip header karena tidak digunakan di back end
-            if (o === 1) continue;
-            if (ws['A' + o] && ws['A' + o].v !== undefined) {
-                keys++;
-                //untuk diambil dari kolom a-d
-                arr.push([
-                    (ws['A' + o] && ws['A' + o].v !== undefined) ? ws['A' + o]['v'] : '',
-                    (ws['B' + o] && ws['B' + o].v !== undefined) ? ws['B' + o]['v'] : '',
-                    (ws['C' + o] && ws['C' + o].v !== undefined) ? ws['C' + o]['v'] : '',
-                    (ws['D' + o] && ws['D' + o].v !== undefined) ? ws['D' + o]['v'] : '',
-                ]);
+        
+        let range = XLSX.utils.decode_range(ws['!ref']);
+        totalRows = range.e.r - range.s.r;
+        
+        $("#progressPercent").text('0');
+        
+        let rows = [];
+        for (let R = range.s.r + 1; R <= range.e.r; R++) {
+            if (isCancelled) {
+                return;
             }
-            //jika data sudah 500 data/ yang di setup di variable batch maka dikirim ke server ke function sendData
-            if (keys == offset) {
-                keys = 0;
-                sendData(arr);
-                arr = [];
+            
+            let rowData = [];
+            for (let C = range.s.c + 1; C <= range.e.c; C++) {
+                let cellRef = XLSX.utils.encode_cell({r: R, c: C});
+                rowData.push(ws[cellRef] && ws[cellRef].v !== undefined ? ws[cellRef].v : '');
+            }
+            
+            if (rowData[0] !== '') {
+                rows.push(rowData);
             }
         }
-        //kirim sisa datanya t disini digunakan untuk menentukan batch terakhir
-        sendData(arr, 't');
+        
+        totalRows = rows.length;
+        
+        for (let i = 0; i < rows.length; i += 500) {
+            if (isCancelled) {
+                return;
+            }
+            
+            let batch = rows.slice(i, i + 500);
+            let isLast = (i + 500) >= rows.length;
+            try {
+                await sendData(batch, isLast ? 't' : 'f');
+            } catch {
+                return;
+            }
+        }
     }
 
     $(document).ready(function() {
         $("#importexcel").on('submit', function(e) {
             e.preventDefault();
-            $(".button-import").attr('disabled', 'disabled');
+            $("#btn-process").attr('disabled', 'disabled');
             $("#excelfile").attr('onchange', 'getFiles(event)');
             $("#btn-close-modaldetail").addClass('hiding')
             $("#excelfile").trigger('change');
@@ -98,40 +102,64 @@
 
     undfhinvoice = 0
 
-    async function sendData(arr, isfinish = 'f') {
-        //untuk delay
-        await sleep(2000);
-        //update progress jumlah data yang dikiirm
-        let textproses = $("#totalsent").text();
-        $("#totalsent").text(formatRupiah(exp_number(textproses) + arr.length));
-        // untuk mengirim data ke back end
-        $.ajax({
-            url: '<?= base_url('invoice/importExcel') ?>',
-            type: 'post',
-            dataType: 'json',
-            data: {
-                datas: JSON.stringify(arr),
-                <?= csrf_token() ?>: decrypter($("#csrf_token").val())
-            },
-            async: false,
-            success: function(res) {
-                $('#excelfile').removeAttr('disabled');
-                $("#csrf_token").val(encrypter(res.csrfToken));
-                undfhinvoice += res.undfhinvoice
-                //jika batch terakhir sudah selesai maka kirim notif
-                if (isfinish == 't') {
-                    showNotif("success", "Data updated successfully");
-                    if (undfhinvoice >= 1) {
-                        showNotif("error", `${undfhinvoice} invoice dilewatkan`);
-                    }
-                    setTimeout(() => {
-                        close_modal('modaldetail');
-                        tbl.ajax.reload();
-                    }, 250);
-                }
-                $(".button-import").removeAttr('disabled')
-                $("#btn-close-modaldetail").removeClass('hiding')
+    function sendData(arr, isfinish = 'f') {
+        return new Promise((resolve, reject) => {
+            if (isCancelled) {
+                reject();
+                return;
             }
-        })
+
+            if (arr.length === 0) {
+                resolve();
+                return;
+            }
+
+            $.ajax({
+                url: '<?= base_url('invoice/importExcel') ?>',
+                type: 'post',
+                dataType: 'json',
+                data: {
+                    datas: JSON.stringify(arr),
+                    <?= csrf_token() ?>: decrypter($("#csrf_token").val())
+                },
+                success: function(res) {
+                    $('#excelfile').removeAttr('disabled');
+                    $("#csrf_token").val(encrypter(res.csrfToken));
+                    undfhinvoice += res.undfhinvoice;
+
+                    processedRows += arr.length;
+                    let percent = Math.round((processedRows / totalRows) * 100);
+                    if (percent > 100) percent = 100;
+                    $("#progressPercent").text(percent);
+
+                    if (isfinish == 't' && !isCancelled) {
+                        $("#progressPercent").text('100');
+                        showNotif("success", "Invoice updated successfully");
+                        if (undfhinvoice >= 1) {
+                            if (res.invalidcustomerarr && res.invalidcustomerarr.length > 0) {
+                                showNotif("error", `${undfhinvoice} invoice dilewatkan. Customer tidak ditemukan: ${res.invalidcustomerarr.join(', ')}`);
+                            } else {
+                                showNotif("error", `${undfhinvoice} invoice dilewatkan`);
+                            }
+                        }
+                        setTimeout(() => {
+                            close_modal('modaldetail');
+                            tbl.ajax.reload();
+                        }, 500);
+                    }
+                    $("#btn-close-modaldetail").removeClass('hiding');
+                    resolve();
+                },
+                error: function() {
+                    reject();
+                }
+            });
+        });
+    }
+
+    function handleCancel() {
+        isCancelled = true;
+        $("#btn-process").removeAttr('disabled');
+        close_modal('modaldetail');
     }
 </script>
