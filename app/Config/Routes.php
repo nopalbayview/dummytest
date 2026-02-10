@@ -93,7 +93,11 @@ $routes->group('project', function ($routes) {
     $routes->add('update', 'Project::updateData', $this->noauth);
     $routes->add('delete', 'Project::deleteData', $this->noauth);
     $routes->add('export', 'Project::exportexcel');
+<<<<<<< HEAD
     $routes->add('formImport', 'Project::formImport', $this->noauth);
+=======
+    $routes->add('formImport', 'Invoice::formImport', $this->noauth);
+>>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
     $routes->get('generatePdf', 'Project::generatePdf');
     $routes->get('generatePdf/(:any)', 'Project::generatePdf/$1', $this->noauth);
 });
@@ -112,7 +116,10 @@ $routes->group('product', function ($routes) {
     $routes->add('importExcel', 'Product::importExcel', $this->noauth);
 });
 
+<<<<<<< HEAD
 // Routes Master Invoice
+=======
+>>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
 $routes->group('invoice', function ($routes) {
     $routes->add('', 'Invoice::index', $this->noauth);
     $routes->add('table', 'Invoice::datatable', $this->noauth);
@@ -120,11 +127,14 @@ $routes->group('invoice', function ($routes) {
     $routes->add('form', 'Invoice::forms', $this->noauth);
     $routes->add('form/(:any)', 'Invoice::forms/$1', $this->noauth);
     $routes->add('update', 'Invoice::updateData', $this->noauth);
+<<<<<<< HEAD
     $routes->add('export', 'Invoice::exportExcel', $this->noauth);
     $routes->add('formImport', 'Invoice::formImport', $this->noauth);
     $routes->add('importExcel', 'Invoice::importExcel', $this->noauth);
     $routes->add('downloadable', 'Invoice::downloadTmp', $this->noauth);
     $routes->add('pdf', 'Invoice::Fpdf', $this->noauth);
+=======
+>>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
     $routes->add('delete', 'Invoice::deleteData', $this->noauth);
     $routes->add('getDetails', 'Invoice::getDetails', $this->noauth);
     $routes->add('addDetail', 'Invoice::addDetail', $this->noauth);
@@ -132,6 +142,7 @@ $routes->group('invoice', function ($routes) {
     $routes->add('deleteDetail', 'Invoice::deleteDetail', $this->noauth);
     $routes->add('detailDatatable', 'Invoice::detailDatatable', $this->noauth);
     $routes->add('detailDatatable/(:any)', 'Invoice::detailDatatable/$1', $this->noauth);
+<<<<<<< HEAD
     $routes->add('detailform/(:any)', 'Invoice::detailForm/$1', $this->noauth);
     $routes->add('customerList', 'Invoice::customerList', $this->noauth);
     $routes->add('getProducts', 'Invoice::getProducts', $this->noauth);
@@ -153,3 +164,19 @@ $routes->add('/logout', 'User::logOut');
 //Export to excel routes
 $routes->get('Document/export', 'Document::export');
 $routes->get('Document/exportpdf', 'Document::exportpdf');
+=======
+    $routes->add('customerList', 'Invoice::customerList', $this->noauth);
+    $routes->add('customer/list', 'Invoice::customerList', $this->noauth);
+    $routes->add('getProducts', 'Invoice::getProducts', $this->noauth);
+    $routes->add('product/list', 'Invoice::productList', $this->noauth);
+    $routes->add('getSingleDetail', 'Invoice::getSingleDetail', $this->noauth);
+    $routes->add('getUOMs', 'Invoice::getUOMs', $this->noauth);
+    $routes->add('uomList', 'Invoice::uomList', $this->noauth);
+    $routes->add('updateGrandTotal', 'Invoice::updateGrandTotal', $this->noauth);
+    $routes->add('table', 'Invoice::datatable', $this->noauth);
+    // Customer list routes
+    });
+// -------------------------------------------------------->
+// Log Out
+$routes->add('/logout', 'User::logOut');
+>>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf

@@ -681,10 +681,17 @@ function deleteDataParam($arr)
 
 function getAvatar($userid)
 {
+<<<<<<< HEAD
     $avatar = getURL('/images/avatar/avatars.png');
     $profilepict = getSession('profilepict');
     if ($profilepict != null) {
         $avatar = getURL('/images/avatar/user/' . $profilepict);
+=======
+    $avatar = getURL('images/avatar/avatars.png');
+    $profilepict = getSession('profilepict');
+    if ($profilepict != null) {
+        $avatar = getURL('images/avatar/user/' . $profilepict);
+>>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
     }
     return $avatar;
 }

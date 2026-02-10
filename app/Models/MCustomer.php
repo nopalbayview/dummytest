@@ -7,9 +7,13 @@ use CodeIgniter\Model;
 class MCustomer extends Model
 {
     protected $db;
+<<<<<<< HEAD
     protected $builder;
     protected $table = 'mscustomer';
 
+=======
+    protected $table = 'mscustomer';
+>>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
     public function __construct()
     {
         $this->db = db_connect();

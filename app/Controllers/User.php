@@ -47,7 +47,11 @@ class User extends BaseController
     {
         $username = $this->request->getPost('username');
         $password = $this->request->getPost('password');
+<<<<<<< HEAD
         //dd($this->request->getPost());
+=======
+        dd($this->request->getPost());
+>>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
         
         $res = array();
         $this->db->transBegin();

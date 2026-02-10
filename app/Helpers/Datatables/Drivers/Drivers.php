@@ -46,8 +46,7 @@ class Drivers
                                 $query = $dbcolumn->query($query, $dbcolumn->field($field), $dbcolumn->format($searchValue));
                             } else {
                                 $index == 0
-                                    // ? $query->like("lower(" . $dbcolumn->field($field) . ")", $dbcolumn->format($searchValue))
-                                    // : $query->orLike("lower(" . $dbcolumn->field($field) . ")", $dbcolumn->format($searchValue));
+                                    // Case sensitive search (tanpa LOWER)
                                     ? $query->like("lower (CAST(" . $dbcolumn->field($field) . " AS VARCHAR))", $dbcolumn->format(strtolower($searchValue))) 
                                     : $query->orLike ("lower (CAST(". $dbcolumn->field($field) . " AS VARCHAR))", $dbcolumn->format(strtolower($searchValue)));
                             }

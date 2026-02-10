@@ -4,7 +4,11 @@
 <input type="hidden" id="csrf_token" value="<?= base_encode(csrf_hash()) ?>">
 <input type="hidden" id="list_dtids" value="">
 </body>
+<<<<<<< HEAD
 <script src="<?= getURL('js/ckeditor5.js') ?>"></script>
+=======
+<script src="<?= getURL('/js/ckeditor5.js') ?>"></script>
+>>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
 <!-- Modal Preview -->
 <div class="modal fade" id="modalprev" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="modalprevLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
@@ -139,7 +143,11 @@
                     <div class="col-4">
                         <div class="dflex align-center justify-center">
                             <div style="width: 90%;height:250px;padding:4px;margin-block:4px;border:1px solid rgba(108, 108, 108, 0.25)">
+<<<<<<< HEAD
                                 <img src="<?= getURL('images/blank.jpg') ?>" loading="lazy" alt="preview" id="preview-alt" style="width: 100%;height:100%;object-fit:contain;">
+=======
+                                <img src="<?= getURL('/images/blank.jpg') ?>" loading="lazy" alt="preview" id="preview-alt" style="width: 100%;height:100%;object-fit:contain;">
+>>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
                             </div>
                         </div>
                         <div class="dflex align-center justify-center">
@@ -216,7 +224,24 @@
     </div>
 </div>
 <!-- Modal Delete -->
-<div class="modal fade" id="modaldel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" style="z-index: 2147483647 !important" data-bs-backdrop="static">
+<style>
+/* Custom backdrop untuk modal delete agar lebih gelap */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(2px);
+}
+
+/* Pastikan modal delete di atas form */
+#modaldel {
+    z-index: 2147483647 !important;
+}
+#modaldel .modal-content {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: none;
+    border-radius: 8px;
+}
+</style>
+<div class="modal fade" id="modaldel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-backdrop-class="modal-backdrop-custom">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -279,7 +304,11 @@
             <div class="modal-body dflex align-center justify-center">
                 <div class="text-center p-y-2">
                     <h5 class="modal-title text-danger" id="errorModalInfoLabel">Internal Server Error !</h5>
+<<<<<<< HEAD
                     <img src="<?= base_url('icon/error-icon.png') ?>" width="200px">
+=======
+                    <img src="<?= base_url('/icon/error-icon.png') ?>" width="200px">
+>>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
                     <h6>Reload your page or contact administrator for the further</h6>
                 </div>
             </div>
@@ -1160,6 +1189,34 @@
                             } else if (typeof tbl_sub !== 'undefined') {
                                 tbl_sub.ajax.reload();
                             }
+                        } else if (pagetype == 'detail') {
+                            console.log('Reloading detail tables...');
+
+                            // Reload detail table
+                            if ($('#detailTable').length && $.fn.DataTable.isDataTable('#detailTable')) {
+                                $('#detailTable').DataTable().ajax.reload(function() {
+                                    console.log('Detail table reloaded successfully');
+                                }, false);
+                            } else {
+                                console.warn('Detail table DataTable not found');
+                            }
+
+                            // Reload header table
+                            if (typeof tbl !== 'undefined' && tbl.ajax) {
+                                tbl.ajax.reload(function() {
+                                    console.log('Header table reloaded successfully');
+                                });
+                            } else {
+                                console.warn('Header table not found');
+                            }
+
+                            // Reset form detail
+                            $('#form-detail')[0].reset();
+                            $('#productid, #uomid').val(null).trigger('change');
+                            $('#price').val('');
+                            $('#detailid').val('');
+
+                            console.log('Form reset completed');
                         } else if (pagetype == 'profiletab') {
                             $('#profile-wrap').load('<?= getURL('myprofile/getview') ?>');
                             fileArr = '';
@@ -1340,7 +1397,11 @@
                     let getlink = splitlink[0]
                     $("#list-notifikasi").append(`
                     <div class="dropdown-item align-start" ${style_warna} url="${getlink}" type="single" notif="${arr[x]['notifid']}" onclick="read_notif(this)">
+<<<<<<< HEAD
     <img src="<?= getURL('images/avatar/avatar-1.png') ?>" style="width: 30px; height: 100%; object-fit: cover" alt="avatar" class="img-profile margin-r-3" />
+=======
+    <img src="<?= getURL('/images/avatar/avatar-1.png') ?>" style="width: 30px; height: 100%; object-fit: cover" alt="avatar" class="img-profile margin-r-3" />
+>>>>>>> cf179c2c3b1d60e43f03294e62a7d219b42159cf
     <div class="row" style="width: 100%">
         <div style="width: 100%; margin: 0; display: flex">
             <span class="fw-semibold" style="font-size: 12px !important">${arr[x]['fromname']}</span>
@@ -1713,12 +1774,11 @@
                 let processResults = options.processResults !== undefined ? options.processResults : (response) => {
                     $("#csrf_token").val(encrypter(response.csrfToken));
                     return {
-                        results: response.data
+                        results: response.results
                     };
                 };
                 let data = (params) => {
-                    params['searchTerm'] = params.term;
-                    params['<?= csrf_token() ?>'] = decrypter($("#csrf_token").val());
+                    params['q'] = params.term;
 
                     if (options.data !== undefined &&
                         typeof options.data === 'function') return options.data(params);
@@ -1729,7 +1789,7 @@
 
                 config.ajax = {
                     url: url,
-                    type: 'post',
+                    type: 'get',
                     data: data,
                     dataType: 'json',
                     cache: cache,
@@ -2114,4 +2174,4 @@
         }
         return teks;
     }
-</script>
+</script>   
