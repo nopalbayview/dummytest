@@ -884,8 +884,13 @@
             type: 'post',
             dataType: 'json',
             data: function(param) {
-                param["<?= csrf_token() ?>"] = decrypter($("#csrf_token").val());
-                return param;
+            param["<?= csrf_token() ?>"] = decrypter($("#csrf_token").val());
+            // TAMBAHKAN INI:
+            param["start_date"] = $('#filter_start_date').val() || '';
+            param["end_date"] = $('#filter_end_date').val() || '';
+            param["customer_id"] = $('#filter_customer_id').val() || '';
+            return param;
+
             },
             "deferRender": true,
             dataSrc: function(json) {

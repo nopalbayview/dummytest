@@ -57,8 +57,14 @@ class Invoice extends BaseController
         $arrayColumn = [null, "trinvoicehd.transcode", "trinvoicehd.transdate", "c.customername", "trinvoicehd.grandtotal", "trinvoicehd.description", "trinvoicehd.isactive"];
         $columnName = $arrayColumn[$columnIndex];
 
+        $filters = [
+            'startDate' => $this->request->getPost('start_date'),
+            'endDate'   => $this->request->getPost('end_date'),
+            'customerId' => $this->request->getPost('customer_id')
+        ];
+
         $table = Datatables::method([$this->invoiceHeaderModel::class, 'datatable'], 'searchable')
-            ->setParams(null, ['columnName' => $columnName, 'columnOrder' => $columnOrder])
+            ->setParams([$filters, ['columnName' => $columnName, 'columnOrder' => $columnOrder]])
             ->make();
 
         $table->updateRow(function ($db, $no) {
@@ -780,13 +786,19 @@ class Invoice extends BaseController
         exit;
     }
 
-    
+
     public function exportExcel()
     {
         $limit  = 500;
         $offset = 0;
         $row    = 2;
         $no     = 1;
+
+        $filters = [
+            'startDate'  => $this->request->getGet('startDate'),
+            'endDate'    => $this->request->getGet('endDate'),
+            'customerId' => $this->request->getGet('customerId')
+        ];
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -801,27 +813,27 @@ class Invoice extends BaseController
 
         // ===== STYLE =====
         $headerStyle = [
-                'font' => [
-                    'bold' => true,
-                    'color' => ['argb' => 'FFFFFF'],
+            'font' => [
+                'bold' => true,
+                'color' => ['argb' => 'FFFFFF'],
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['argb' => '4CAF50'],
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
                 ],
-                'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['argb' => '4CAF50'],
+            ],
+        ];
+        $dataStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
                 ],
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    ],
-                ],
-            ];
-            $dataStyle = [
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    ],
-                ],
-            ];
+            ],
+        ];
 
         // ===== HEADER =====
         $headers = ['No', 'Transcode', 'Transdate', 'Customer Name', 'Grand Total', 'Description'];
@@ -835,7 +847,7 @@ class Invoice extends BaseController
         // ================= CHUNK LOOP =================
         while (true) {
 
-            $invoices = $this->invoiceHeaderModel->getInvoiceChunk($limit, $offset);
+            $invoices = $this->invoiceHeaderModel->getHeaderChunkWithFilters($limit, $offset, $filters);
 
             if (empty($invoices)) {
                 break;
@@ -870,35 +882,34 @@ class Invoice extends BaseController
         $writer->save('php://output');
         exit;
     }
-    
+
     public function getHeaderChunk()
     {
         $limit = (int) $this->request->getGet('limit');
         $offset = (int) $this->request->getGet('offset');
-    
-        // Jika offset >= 999999, hitung total records (pakai query builder reset)
+
+        $filters = [
+            'startDate'  => $this->request->getGet('startDate'),
+            'endDate'    => $this->request->getGet('endDate'),
+            'customerId' => $this->request->getGet('customerId')
+        ];
+
+        // Jika offset >= 999999, hitung total records dengan filter
         if ($offset >= 999999) {
-            $builder = $this->invoiceHeaderModel->builder();
-            $total = $builder->countAllResults();
+            $total = $this->invoiceHeaderModel->countHeaderWithFilters($filters);
             return $this->response->setJSON([
                 'rows' => [],
                 'count' => 0,
                 'total' => $total
             ]);
         }
-    
-        $data = $this->invoiceHeaderModel->getInvoiceChunk($limit, $offset);
-    
+
+        $data = $this->invoiceHeaderModel->getHeaderChunkWithFilters($limit, $offset, $filters);
+
         return $this->response->setJSON([
             'rows' => $data,
             'count' => count($data),
             'offset' => $offset
         ]);
     }
-
-    public function formImport()
-    {
-        
-    }
-}
-
+}    

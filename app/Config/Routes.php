@@ -27,6 +27,7 @@ $routes->group('user', function ($routes) {
     $routes->add('update', 'User::updateData', $this->noauth);
     $routes->add('delete', 'User::deleteData', $this->noauth);
     $routes->add('printpdf', 'User::printPDF', $this->noauth);
+    $routes->add('user', 'User::exportExcel', $this->noauth);
 });
 
 //document ROUTES
@@ -92,7 +93,7 @@ $routes->group('project', function ($routes) {
     $routes->add('update', 'Project::updateData', $this->noauth);
     $routes->add('delete', 'Project::deleteData', $this->noauth);
     $routes->add('export', 'Project::exportexcel');
-    $routes->add('formImport', 'Invoice::formImport', $this->noauth);
+    $routes->add('formImport', 'Project::formImport', $this->noauth);
     $routes->get('generatePdf', 'Project::generatePdf');
     $routes->get('generatePdf/(:any)', 'Project::generatePdf/$1', $this->noauth);
 });
@@ -120,6 +121,8 @@ $routes->group('invoice', function ($routes) {
     $routes->add('form/(:any)', 'Invoice::forms/$1', $this->noauth);
     $routes->add('update', 'Invoice::updateData', $this->noauth);
     $routes->add('export', 'Invoice::exportExcel', $this->noauth);
+    $routes->add('formImport', 'Invoice::formImport', $this->noauth);
+    $routes->add('importExcel', 'Invoice::importExcel', $this->noauth);
     $routes->add('pdf', 'Invoice::Fpdf', $this->noauth);
     $routes->add('delete', 'Invoice::deleteData', $this->noauth);
     $routes->add('getDetails', 'Invoice::getDetails', $this->noauth);

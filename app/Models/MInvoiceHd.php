@@ -32,25 +32,40 @@ class MInvoiceHd extends Model
 
     public function searchable()
     {
-    return [
-        null,           // No
-        'transcode',    // Transcode
-        'transdate',    // Transdate
-        'mscustomer.customername', //Search by customername
-        'grandtotal',   // Grandtotal
-        'description',  // Description
-        null,           // Created By
-        null,           // Updated By
-        null            // Actions
-    ];
-}
+        return [
+            null,           // No
+            'transcode',    // Transcode
+            'transdate',    // Transdate
+            'mscustomer.customername', //Search by customername
+            'grandtotal',   // Grandtotal
+            'description',  // Description
+            null,           // Created By
+            null,           // Updated By
+            null            // Actions
+        ];
+    }
 
 
-    public function datatable()
+    public function datatable($filters = [])
     {
-        return $this->builder
+        $builder = $this->builder
             ->select('trinvoicehd.*, mscustomer.customername')
             ->join('mscustomer', 'mscustomer.id = trinvoicehd.customerid', 'left');
+
+        if (!empty($filters['startDate']) && empty($filters['endDate'])) {
+            $builder->where('DATE(trinvoicehd.transdate)', $filters['startDate']);
+        } elseif (empty($filters['startDate']) && !empty($filters['endDate'])) {
+            $builder->where('DATE(trinvoicehd.transdate)', $filters['endDate']);
+        } elseif (!empty($filters['startDate']) && !empty($filters['endDate'])) {
+            $builder->where('trinvoicehd.transdate >=', $filters['startDate']);
+            $builder->where('trinvoicehd.transdate <=', $filters['endDate']);
+        }
+
+        if (!empty($filters['customerId'])) {
+            $builder->where('trinvoicehd.customerid', $filters['customerId']);
+        }
+
+        return $builder;
     }
 
     public function getOne($id)
@@ -96,12 +111,70 @@ class MInvoiceHd extends Model
 
     public function getInvoiceChunk($limit, $offset)
     {
-    return $this->builder
-        ->select('trinvoicehd.*, mscustomer.customername')
-        ->join('mscustomer', 'mscustomer.id = trinvoicehd.customerid', 'left')
-        ->orderBy('trinvoicehd.id', 'ASC')
-        ->limit($limit, $offset)
-        ->get()
-        ->getResultArray();
+        return $this->builder
+            ->select('trinvoicehd.*, mscustomer.customername')
+            ->join('mscustomer', 'mscustomer.id = trinvoicehd.customerid', 'left')
+            ->orderBy('trinvoicehd.id', 'ASC')
+            ->limit($limit, $offset)
+            ->get()
+            ->getResultArray();
+    }
+
+    public function getHeaderChunkWithFilters($limit, $offset, $filters = [])
+    {
+        $builder = $this->builder
+            ->select('trinvoicehd.*, mscustomer.customername')
+            ->join('mscustomer', 'mscustomer.id = trinvoicehd.customerid', 'left')
+            ->orderBy('trinvoicehd.id', 'ASC');
+
+        // Both dates provided
+        if (!empty($filters['startDate']) && !empty($filters['endDate'])) {
+            $builder->where('trinvoicehd.transdate >=', $filters['startDate']);
+            $builder->where('trinvoicehd.transdate <=', $filters['endDate']);
+        }
+        // Only startDate provided (exact date match)
+        elseif (!empty($filters['startDate']) && empty($filters['endDate'])) {
+            $builder->where('DATE(trinvoicehd.transdate)', $filters['startDate']);
+        }
+        // Only endDate provided (exact date match)
+        elseif (empty($filters['startDate']) && !empty($filters['endDate'])) {
+            $builder->where('DATE(trinvoicehd.transdate)', $filters['endDate']);
+        }
+
+        if (!empty($filters['customerId'])) {
+            $builder->where('trinvoicehd.customerid', $filters['customerId']);
+        }
+
+        return $builder
+            ->limit($limit, $offset)
+            ->get()
+            ->getResultArray();
+    }
+
+    public function countHeaderWithFilters($filters = [])
+    {
+        $builder = $this->builder
+            ->select('trinvoicehd.id')
+            ->join('mscustomer', 'mscustomer.id = trinvoicehd.customerid', 'left');
+
+        // Both dates provided
+        if (!empty($filters['startDate']) && !empty($filters['endDate'])) {
+            $builder->where('trinvoicehd.transdate >=', $filters['startDate']);
+            $builder->where('trinvoicehd.transdate <=', $filters['endDate']);
+        }
+        // Only startDate provided (exact date match)
+        elseif (!empty($filters['startDate']) && empty($filters['endDate'])) {
+            $builder->where('DATE(trinvoicehd.transdate)', $filters['startDate']);
+        }
+        // Only endDate provided (exact date match)
+        elseif (empty($filters['startDate']) && !empty($filters['endDate'])) {
+            $builder->where('DATE(trinvoicehd.transdate)', $filters['endDate']);
+        }
+
+        if (!empty($filters['customerId'])) {
+            $builder->where('trinvoicehd.customerid', $filters['customerId']);
+        }
+
+        return $builder->countAllResults();
     }
 }
