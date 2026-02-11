@@ -72,13 +72,13 @@
         
         totalRows = rows.length;
         
-        for (let i = 0; i < rows.length; i += 500) {
+        for (let i = 0; i < rows.length; i += 200) {
             if (isCancelled) {
                 return;
             }
             
-            let batch = rows.slice(i, i + 500);
-            let isLast = (i + 500) >= rows.length;
+            let batch = rows.slice(i, i + 200);
+            let isLast = (i + 200) >= rows.length;
             try {
                 await sendData(batch, isLast ? 't' : 'f');
             } catch {
@@ -104,8 +104,10 @@
 
     function sendData(arr, isfinish = 'f') {
         return new Promise((resolve, reject) => {
-            if (isCancelled) {
-                reject();
+            if (isCancelled && isfinish === 't') {
+                let percent = $("#progressPercent").text();
+                showNotif("warning", `Import dibatalkan pada ${percent}%`);
+                resolve();
                 return;
             }
 
@@ -145,7 +147,7 @@
                         setTimeout(() => {
                             close_modal('modaldetail');
                             tbl.ajax.reload();
-                        }, 500);
+                        }, 200);
                     }
                     $("#btn-close-modaldetail").removeClass('hiding');
                     resolve();
@@ -160,6 +162,8 @@
     function handleCancel() {
         isCancelled = true;
         $("#btn-process").removeAttr('disabled');
+        let percent = $("#progressPercent").text();
+        showNotif("error", `Import dibatalkan pada ${percent}%`);
         close_modal('modaldetail');
     }
 </script>
