@@ -141,9 +141,7 @@ class Invoice extends BaseController
 
     public function detailForm($id)
     {
-        $detail = $this->invoiceDetailModel->getDetail('trinvoicedt.id', $id)
-            ->get()
-            ->getRowArray();
+        $detail = $this->invoiceDetailModel->getOne($id);
 
         if (empty($detail)) {
             return $this->response->setJSON([
