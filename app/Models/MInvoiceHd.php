@@ -53,9 +53,9 @@ class MInvoiceHd extends Model
             ->join('mscustomer', 'mscustomer.id = trinvoicehd.customerid', 'left');
 
         if (!empty($filters['startDate']) && empty($filters['endDate'])) {
-            $builder->where('DATE(trinvoicehd.transdate)', $filters['startDate']);
+            $builder->where('trinvoicehd.transdate >=', $filters['startDate']);
         } elseif (empty($filters['startDate']) && !empty($filters['endDate'])) {
-            $builder->where('DATE(trinvoicehd.transdate)', $filters['endDate']);
+            $builder->where('DATE(trinvoicehd.transdate) <=', $filters['endDate']);
         } elseif (!empty($filters['startDate']) && !empty($filters['endDate'])) {
             $builder->where('trinvoicehd.transdate >=', $filters['startDate']);
             $builder->where('trinvoicehd.transdate <=', $filters['endDate']);
@@ -132,13 +132,13 @@ class MInvoiceHd extends Model
             $builder->where('trinvoicehd.transdate >=', $filters['startDate']);
             $builder->where('trinvoicehd.transdate <=', $filters['endDate']);
         }
-        // Only startDate provided (exact date match)
+        // Only startDate provided
         elseif (!empty($filters['startDate']) && empty($filters['endDate'])) {
-            $builder->where('DATE(trinvoicehd.transdate)', $filters['startDate']);
+            $builder->where('trinvoicehd.transdate >=', $filters['startDate']);
         }
-        // Only endDate provided (exact date match)
+        // Only endDate provided
         elseif (empty($filters['startDate']) && !empty($filters['endDate'])) {
-            $builder->where('DATE(trinvoicehd.transdate)', $filters['endDate']);
+            $builder->where('DATE(trinvoicehd.transdate) <=', $filters['endDate']);
         }
 
         if (!empty($filters['customerId'])) {
@@ -162,13 +162,13 @@ class MInvoiceHd extends Model
             $builder->where('trinvoicehd.transdate >=', $filters['startDate']);
             $builder->where('trinvoicehd.transdate <=', $filters['endDate']);
         }
-        // Only startDate provided (exact date match)
+        // Only startDate provided
         elseif (!empty($filters['startDate']) && empty($filters['endDate'])) {
-            $builder->where('DATE(trinvoicehd.transdate)', $filters['startDate']);
+            $builder->where('trinvoicehd.transdate >=', $filters['startDate']);
         }
-        // Only endDate provided (exact date match)
+        // Only endDate provided
         elseif (empty($filters['startDate']) && !empty($filters['endDate'])) {
-            $builder->where('DATE(trinvoicehd.transdate)', $filters['endDate']);
+            $builder->where('DATE(trinvoicehd.transdate) <=', $filters['endDate']);
         }
 
         if (!empty($filters['customerId'])) {

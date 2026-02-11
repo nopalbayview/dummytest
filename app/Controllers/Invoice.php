@@ -79,10 +79,13 @@ class Invoice extends BaseController
             $btn_pdf = "<button type='button' class='btn btn-sm btn-info'
             onclick=\"window.open('" . getURL('invoice/pdf/' . encrypting($db->id)) . "', '_blank')\">
             <i class='bx bx-printer'></i></button>";
+
+            $transdateFormatted = !empty($db->transdate) ? date('d-F-Y', strtotime($db->transdate)) : '';
+
             return [
                 $no,
                 $db->transcode,
-                $db->transdate,
+                $transdateFormatted,
                 $db->customername,
                 'Rp' . number_format($db->grandtotal, 2, ',', '.'),
                 $db->description,

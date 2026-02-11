@@ -2,8 +2,8 @@
     <?= $this->include('template/v_appbar') ?>
 
     <div class="main-content content margin-t-4">
-        <div class="card-header dflex align-center justify-content-between">
-            <div class="d-flex align-items-end gap-2" style="flex-wrap: wrap;">
+        <div class="card-header dflex align-center" style="gap:10px;">
+            <div class="dflex align-center" style="gap:16px;flex-wrap:wrap;">
                 <div>
                     <label class="small mb-0">Transdate Start</label>
                     <input type="date" id="f_from" class="form-control form-control-sm py-1" style="width: 110px;">
