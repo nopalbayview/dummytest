@@ -146,6 +146,17 @@ $routes->group('invoice', function ($routes) {
     $routes->add('getHeaderChunk', 'Invoice::getHeaderChunk', $this->noauth);
     // Customer list routes
 });
+
+$routes->group('files', function ($routes) {
+    $routes->add('', 'Files::index', $this->noauth);
+    $routes->add('table', 'Files::datatable', $this->noauth);
+    $routes->add('form', 'Files::forms', $this->noauth);
+    $routes->add('form/(:any)', 'Files::forms/$1', $this->noauth);
+    $routes->add('upload', 'Files::upload', $this->noauth);
+    $routes->add('update', 'Files::updateData', $this->noauth);
+    $routes->add('delete', 'Files::deleteData', $this->noauth);
+    $routes->get('download/(:any)', 'Files::download/$1', $this->noauth);
+});
 // -------------------------------------------------------->
 // Log Out
 $routes->add('/logout', 'User::logOut');

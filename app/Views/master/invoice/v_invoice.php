@@ -260,7 +260,7 @@
                         $('#transdate').val("");
                         $('#customername').val("");
                         $('#description').val("");
-                        tbl.ajax.reload();
+                        location.reload();
                     } else {
                         alert(res.pesan);
                     }

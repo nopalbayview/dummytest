@@ -930,6 +930,9 @@ class Invoice extends BaseController
             $undfhinvoice = 0;
             $undfhinvoicearr = [];
             $invalidcustomerarr = [];
+            $skipped = 0;
+            $skippedarr = [];
+            $inserted = 0;
             foreach ($datas as $dt) {
                 if (
                     empty($dt[0]) || // transcode
@@ -943,6 +946,15 @@ class Invoice extends BaseController
                     continue;
                 }
 
+                $transcode = trim($dt[0]);
+                // Check if transcode already exists
+                $existing = $this->invoiceHeaderModel->where('transcode', $transcode)->first();
+                if ($existing) {
+                    $skipped++;
+                    $skippedarr[] = $transcode;
+                    continue;
+                }
+
                 $customername = trim($dt[2]);
                 $customer = $this->customerModel->getByName($customername);
 
@@ -953,7 +965,7 @@ class Invoice extends BaseController
                 }
 
                 $this->invoiceHeaderModel->insert([
-                    'transcode' => trim($dt[0]),
+                    'transcode' => $transcode,
                     'transdate' => trim($dt[1]),
                     'customerid' => $customer['id'],
                     'grandtotal' => trim($dt[3]),
@@ -964,19 +976,24 @@ class Invoice extends BaseController
                     'updatedby' => getSession('userid'),
                     'isactive' => true,
                 ]);
+                $inserted++;
             }
-            $res = [
+             $res = [
                 'sukses' => '1',
                 'undfhinvoice' => $undfhinvoice,
                 'undfhinvoicearr' => $undfhinvoicearr,
-                'invalidcustomerarr' => $invalidcustomerarr
+                'invalidcustomerarr' => $invalidcustomerarr,
+                'skipped' => $skipped,
+                'skippedarr' => $skippedarr,
+                'inserted' => $inserted
             ];
-            $this->db->transCommit();       
+            $this->db->transCommit();
         } catch (Exception $e) {
             $res = [
                 'sukses' => '0',
                 'err' => $e->getMessage(),
-                'traceString' => $e->getTraceAsString()
+                'traceString' => $e->getTraceAsString(),
+                'invalidcustomerarr' => $invalidcustomerarr
             ];
             $this->db->transRollback();
         }

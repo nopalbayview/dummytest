@@ -369,6 +369,4 @@ class Document extends BaseController
         // Output the PDF as a downloadable file
         $pdf->Output('D', 'Data_Dokumen_' . date('Ymd_His') . '.pdf');
     }
-    
-    
 }

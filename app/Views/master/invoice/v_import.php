@@ -47,36 +47,39 @@
         let data = await file.arrayBuffer();
         let wb = XLSX.read(data);
         let ws = wb.Sheets[wb.SheetNames[0]];
-        
+
         let range = XLSX.utils.decode_range(ws['!ref']);
         totalRows = range.e.r - range.s.r;
-        
+
         $("#progressPercent").text('0');
-        
+
         let rows = [];
         for (let R = range.s.r + 1; R <= range.e.r; R++) {
             if (isCancelled) {
                 return;
             }
-            
+
             let rowData = [];
             for (let C = range.s.c + 1; C <= range.e.c; C++) {
-                let cellRef = XLSX.utils.encode_cell({r: R, c: C});
+                let cellRef = XLSX.utils.encode_cell({
+                    r: R,
+                    c: C
+                });
                 rowData.push(ws[cellRef] && ws[cellRef].v !== undefined ? ws[cellRef].v : '');
             }
-            
+
             if (rowData[0] !== '') {
                 rows.push(rowData);
             }
         }
-        
+
         totalRows = rows.length;
-        
+
         for (let i = 0; i < rows.length; i += 200) {
             if (isCancelled) {
                 return;
             }
-            
+
             let batch = rows.slice(i, i + 200);
             let isLast = (i + 200) >= rows.length;
             try {
@@ -101,6 +104,8 @@
     })
 
     undfhinvoice = 0
+    totalskipped = 0
+    totalinserted = 0
 
     function sendData(arr, isfinish = 'f') {
         return new Promise((resolve, reject) => {
@@ -128,6 +133,8 @@
                     $('#excelfile').removeAttr('disabled');
                     $("#csrf_token").val(encrypter(res.csrfToken));
                     undfhinvoice += res.undfhinvoice;
+                    totalskipped += res.skipped;
+                    totalinserted += res.inserted;
 
                     processedRows += arr.length;
                     let percent = Math.round((processedRows / totalRows) * 100);
@@ -136,17 +143,41 @@
 
                     if (isfinish == 't' && !isCancelled) {
                         $("#progressPercent").text('100');
-                        showNotif("success", "Invoice updated successfully");
+                        
+                        let alertMessages = [];
+                        let successMessages = [];
+                        
+                        if (totalinserted > 0) {
+                            successMessages.push(`${totalinserted} data berhasil diimport`);
+                        }
+                        
+                        if (totalskipped > 0) {
+                            alertMessages.push(`${totalskipped} data sudah ada ( dilewatkan)`);
+                        }
+                        
                         if (undfhinvoice >= 1) {
                             if (res.invalidcustomerarr && res.invalidcustomerarr.length > 0) {
-                                showNotif("error", `${undfhinvoice} invoice dilewatkan. Customer tidak ditemukan: ${res.invalidcustomerarr.join(', ')}`);
+                                alertMessages.push(`${undfhinvoice} customer tidak ditemukan: ${res.invalidcustomerarr.join(', ')}`);
                             } else {
-                                showNotif("error", `${undfhinvoice} invoice dilewatkan`);
+                                alertMessages.push(`${undfhinvoice} data tidak valid`);
                             }
                         }
+                        
+                        if (successMessages.length > 0) {
+                            showNotif("success", successMessages.join('. '));
+                        }
+                        
+                        if (alertMessages.length > 0) {
+                            showNotif("error", alertMessages.join('. '));
+                        }
+                        
+                        if (successMessages.length === 0 && alertMessages.length === 0) {
+                            showNotif("info", "Tidak ada data yang diproses");
+                        }
+                        
                         setTimeout(() => {
                             close_modal('modaldetail');
-                            tbl.ajax.reload();
+                            location.reload();
                         }, 200);
                     }
                     $("#btn-close-modaldetail").removeClass('hiding');
@@ -165,5 +196,6 @@
         let percent = $("#progressPercent").text();
         showNotif("error", `Import dibatalkan pada ${percent}%`);
         close_modal('modaldetail');
+        location.reload();
     }
 </script>

@@ -4,6 +4,11 @@
 <input type="hidden" id="csrf_token" value="<?= base_encode(csrf_hash()) ?>">
 <input type="hidden" id="list_dtids" value="">
 </body>
+<!-- Dropzone CSS -->
+<link href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet">
+<!-- jQuery (sudah ada) -->
+<!-- Dropzone JS -->
+<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
 <script src="<?= getURL('js/ckeditor5.js') ?>"></script>
 <!-- Modal Preview -->
 <div class="modal fade" id="modalprev" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="modalprevLabel" aria-hidden="true">
@@ -1140,7 +1145,15 @@
                                 // dp('#' + reloadpage);
                             })
                         } else if (pagetype == 'table') {
-                            tbl.ajax.reload();
+                            // Reload file table specifically
+                            if (typeof tbl !== 'undefined' && tbl !== null) {
+                                tbl.ajax.reload(null, false);
+                            } else if (typeof tbl === 'undefined' || tbl === null) {
+                                // Try to find and reload any DataTable
+                                if ($.fn.DataTable.isDataTable('#fileTable')) {
+                                    $('#fileTable').DataTable().ajax.reload(null, false);
+                                }
+                            }
                             if (typeof tbls !== 'undefined') {
                                 tbls.ajax.reload();
                             }
